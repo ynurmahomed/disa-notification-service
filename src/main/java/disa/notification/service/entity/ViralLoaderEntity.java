@@ -109,4 +109,7 @@ public class ViralLoaderEntity {
     @Column(name = "NOT_PROCESSING_CAUSE")
     private NotProcessingCause notProcessingCause;
 
+    @Column(name = "CREATED_AT")
+    private LocalDateTime createdAt;
+
 }

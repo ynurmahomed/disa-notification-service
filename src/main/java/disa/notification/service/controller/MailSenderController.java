@@ -17,11 +17,9 @@ public class MailSenderController {
    private final  MailService mailService;
     @PostMapping
     public String sendEmail(
-           final String recipientName, final String recipientEmail, final List<ViralLoaderResult> viralLoaders)
+          final String recipientEmail, final List<ViralLoaderResult> viralLoaders)
             throws MessagingException, IOException {
-
-        this.mailService.sendEmail(
-                recipientName, recipientEmail, viralLoaders);
+        this.mailService.sendEmail(recipientEmail, viralLoaders);
         return "redirect:sent.html";
 
     }

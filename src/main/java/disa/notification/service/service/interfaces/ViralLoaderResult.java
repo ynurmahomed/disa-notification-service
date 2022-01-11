@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public interface ViralLoaderResult {
     String getFacilityName();
+    int getTotalReceived();
     int getProcessed();
-    int getNotProcessed();
-    LocalDateTime getProcessingDate();
-
+    int getNotProcessedNoResult();
+    int getNotProcessedNidNotFount();
 }
