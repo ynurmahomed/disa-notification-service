@@ -5,6 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public interface MailService {
-    void sendEmail(final String recipientEmail, final List<ViralLoaderResult> viralLoaders) throws MessagingException, UnsupportedEncodingException;
+    void sendEmail(final String[] recipientEmails, final List<ViralLoaderResult> viralLoaders) throws MessagingException, UnsupportedEncodingException;
 
 }

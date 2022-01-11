@@ -27,7 +27,7 @@ public class ViralResultSenderTask {
     private final MailService mailService;
 
     @Value("${email.recipients}")
-    private String recipients;
+    private String[] recipients;
 
     //Todas as segundas feiras 8h
     //TODO: substituir o cron expression por "0 8 * * MON"
