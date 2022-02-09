@@ -1,9 +1,9 @@
 package disa.notification.service.service;
 
 import disa.notification.service.service.interfaces.MailService;
-import disa.notification.service.service.interfaces.ViralLoaderResult;
+import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.ViralLoaderResults;
 import disa.notification.service.service.interfaces.ViralLoaderService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +34,20 @@ public class ViralResultSenderTask {
     @Scheduled(cron = "0 1/2 * * * *")
     public void sendViralResultReport() {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
-        List<ViralLoaderResult> result =viralLoaderService.findViralLoadsFromLastWeek();
-        if(!result.isEmpty()){
-            sendViralLoads(result);
+        log.info("A Compor Dados para envio");
+        List<ViralLoaderResultSummary> result =viralLoaderService.findViralLoadsFromLastWeek();
+        List<ViralLoaderResults> viralLoadResults=viralLoaderService.findViralLoadResultsFromLastWeek();
+        List<ViralLoaderResults> unsyncronizedViralLoadResults =viralLoaderService.findUnsyncronizedViralResults();
+
+        if( !result.isEmpty() || !unsyncronizedViralLoadResults.isEmpty() ){
+            log.info("A enviar email...");
+            sendViralLoads(result, viralLoadResults,unsyncronizedViralLoadResults);
         }
     }
 
-    private void sendViralLoads(List<ViralLoaderResult> result) {
+    private void sendViralLoads(List<ViralLoaderResultSummary> result, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults) {
         try {
-            mailService.sendEmail(recipients, result);
+            mailService.sendEmail(recipients, result,viralLoadResults,unsyncronizedViralLoadResults);
         } catch (MessagingException| UnsupportedEncodingException e) {
             e.printStackTrace();
             log.error("Erro ao enviar relatorio de Cargas virais");

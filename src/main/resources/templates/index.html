@@ -15,34 +15,10 @@
     Caros,
 </p>
 <p>
-    Encontre abaixo o relatorio de sincronizacao de Cargas virais de
+    Encontre em anexo o relatorio de sincronizacao de Cargas virais de
     <b th:text="${fromDate}"></b> a <b th:text="${toDate}"></b>
 </p>
 
-<div class="row">
-    <div class="col-lg-10 mt-5 mb-5">
-        <table    width="70%">
-            <thead>
-            <tr>
-                <th rowspan="2">Unidade Sanitaria</th>
-                <th rowspan="2">Total Recebidos</th>
-                <th rowspan="2">Processados</th>
-                <th colspan="2">Nao Processado</th>
-            </tr>
-            <tr>
-                <th>Sem resultados</th>
-                <th>NID nao encontrado</th>
-            </tr>
-            </thead>
-            <tr th:each="viralData : ${viralLoaders}">
-                <td align="center" th:text="${viralData.facilityName}"></td>
-                <td align="center" th:text="${viralData.totalReceived}"></td>
-                <td align="center" th:text="${viralData.processed}"></td>
-                <td align="center" th:text="${viralData.notProcessedNoResult}"></td>
-                <td align="center" th:text="${viralData.notProcessedNidNotFount}"></td>
-            </tr>
-        </table></div>
-</div>
 
 </p>
 <p>

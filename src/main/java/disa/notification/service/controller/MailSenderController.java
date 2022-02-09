@@ -1,7 +1,8 @@
 package disa.notification.service.controller;
 
 import disa.notification.service.service.interfaces.MailService;
-import disa.notification.service.service.interfaces.ViralLoaderResult;
+import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.ViralLoaderResults;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +16,10 @@ public class MailSenderController {
    private final  MailService mailService;
     @PostMapping
     public String sendEmail(
-          final String[] recipientEmail, final List<ViralLoaderResult> viralLoaders)
+          final String[] recipientEmail, final List<ViralLoaderResultSummary> viralLoaders,final List<ViralLoaderResults> viralLoadResults,
+          final List<ViralLoaderResults> unsyncronizedViralLoadResults)
             throws MessagingException, IOException {
-        this.mailService.sendEmail(recipientEmail, viralLoaders);
+        this.mailService.sendEmail(recipientEmail, viralLoaders, viralLoadResults, unsyncronizedViralLoadResults);
         return "redirect:sent.html";
 
     }

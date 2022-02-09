@@ -1,9 +1,11 @@
 package disa.notification.service.service.impl;
 
 import disa.notification.service.service.interfaces.MailService;
-import disa.notification.service.service.interfaces.ViralLoaderResult;
+import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.ViralLoaderResults;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
+import disa.notification.service.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -30,12 +32,12 @@ public class MailServiceImpl implements MailService {
     private String fromEmail;
 
     @Override
-    public void sendEmail(final String[] recipientEmails, final List<ViralLoaderResult> viralLoaders) throws MessagingException, UnsupportedEncodingException {
+    public void sendEmail(final String[] recipientEmails, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults) throws MessagingException, UnsupportedEncodingException {
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
         DateInterval lastWeekInterval= DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted=lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-       String endDateFormatted=lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted=lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         ctx.setVariable("fromDate",startDateFormatted );
         ctx.setVariable("toDate", endDateFormatted);
         ctx.setVariable("viralLoaders", viralLoaders);
@@ -51,6 +53,9 @@ public class MailServiceImpl implements MailService {
         // Create the HTML body using Thymeleaf
         final String htmlContent = this.templateEngine.process("index.html", ctx);
         message.setText(htmlContent, true); // true = isHtml
+
+        String fileName="viral_Result_from_"+startDateFormatted+"_To_"+endDateFormatted+".xlsx";
+        message.addAttachment(fileName, FileUtils.getViralResultXLS(viralLoaders,viralLoadResults,unsyncronizedViralLoadResults));
 
         // Send mail
         this.mailSender.send(mimeMessage);
