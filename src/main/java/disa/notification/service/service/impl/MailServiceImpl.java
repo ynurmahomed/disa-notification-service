@@ -1,5 +1,7 @@
 package disa.notification.service.service.impl;
 
+import disa.notification.service.entity.NotificationConfig;
+import disa.notification.service.entity.PendingViralResultSummary;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
 import disa.notification.service.service.interfaces.ViralLoaderResults;
@@ -32,7 +34,7 @@ public class MailServiceImpl implements MailService {
     private String fromEmail;
 
     @Override
-    public void sendEmail(final String[] recipientEmails, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults) throws MessagingException, UnsupportedEncodingException {
+    public void sendEmail(final NotificationConfig notificationConfig, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingViralResultSummary> pendingHealthFacilitySummaries) throws MessagingException, UnsupportedEncodingException {
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
         DateInterval lastWeekInterval= DateTimeUtils.getLastWeekInterVal();
@@ -48,14 +50,14 @@ public class MailServiceImpl implements MailService {
                 new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
         message.setSubject(String.format(EMAIL_SUBJECT,startDateFormatted,endDateFormatted));
         message.setFrom(fromEmail,"[DISA_EPTS]");
-        message.setTo(recipientEmails);
+        message.setTo(notificationConfig.getMailList());
 
         // Create the HTML body using Thymeleaf
         final String htmlContent = this.templateEngine.process("index.html", ctx);
         message.setText(htmlContent, true); // true = isHtml
 
         String fileName="viral_Result_from_"+startDateFormatted+"_To_"+endDateFormatted+".xlsx";
-        message.addAttachment(fileName, FileUtils.getViralResultXLS(viralLoaders,viralLoadResults,unsyncronizedViralLoadResults));
+        message.addAttachment(fileName, FileUtils.getViralResultXLS(viralLoaders,viralLoadResults,unsyncronizedViralLoadResults,pendingHealthFacilitySummaries));
 
         // Send mail
         this.mailSender.send(mimeMessage);

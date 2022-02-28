@@ -23,4 +23,8 @@ public interface ViralLoaderResults {
 
      LocalDateTime getCreatedAt();
 
+     String getRequestingDistrictName();
+
+     LocalDateTime getUpdatedAt();
+
 }
