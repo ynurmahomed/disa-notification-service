@@ -40,7 +40,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
             " from VlData where  RequestingProvinceName = :province AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2  group by RequestingDistrictName,RequestingFacilityCode,RequestingFacilityName",nativeQuery = true)
     List<PendingHealthFacilitySummary> findUnsincronizedHealthFacilities(@Param("province") String province);
 
-    @Query(value = "SELECT max(UPDATED_AT) as astSyncDate" +
-            " from VlData where  RequestingFacilityCode = :healthFacilityCode AND RequestingFacilityName= :healthFacilityName",nativeQuery = true)
-    LastSyncDate findLastSyncDateByHFCodeAndName(@Param("healthFacilityCode") String healthFacilityCode, @Param("healthFacilityName") String healthFacilityName);
+    @Query(value = "SELECT max(UPDATED_AT) as lastSyncDate" +
+            " from VlData where  RequestingFacilityCode = :healthFacilityCode",nativeQuery = true)
+    LastSyncDate findLastSyncDateByHFCodeAndName(@Param("healthFacilityCode") String healthFacilityCode);
 }

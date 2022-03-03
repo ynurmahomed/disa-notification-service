@@ -79,8 +79,11 @@ public class FileUtils implements XLSColumnConstants {
     }
 
     private static void composeSecondSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
+        DateInterval lastWeekInterval=DateTimeUtils.getLastWeekInterVal();
+        String startDateFormatted=lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted=lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet2 = workbook.createSheet("CV Recebidos");
-        createFirstRow(workbook,sheet2,VIRAL_RESULT_TITLE,10);
+        createFirstRow(workbook,sheet2,VIRAL_RESULT_TITLE+startDateFormatted+" a "+endDateFormatted,10);
         createRowHeader(workbook, sheet2, VIRAL_RESULTS_HEADER);
         AtomicInteger counter2 = new AtomicInteger(2);
         viralLoadResults.stream()
@@ -103,8 +106,11 @@ public class FileUtils implements XLSColumnConstants {
     }
 
     private static void composeFirstSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary, Workbook workbook) {
+        DateInterval lastWeekInterval=DateTimeUtils.getLastWeekInterVal();
+        String startDateFormatted=lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted=lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet = workbook.createSheet("Resumo de Sincronização");
-        createFirstRow(workbook,sheet,VIRAL_RESULT_SUMMARY_TITLE,6);
+        createFirstRow(workbook,sheet,VIRAL_RESULT_SUMMARY_TITLE+startDateFormatted+" a "+endDateFormatted,6);
         createSummaryRowHeader(workbook, sheet, VIRAL_RESULT_SUMMARY_HEADER);
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream()
