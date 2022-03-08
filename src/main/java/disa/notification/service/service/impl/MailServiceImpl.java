@@ -50,7 +50,8 @@ public class MailServiceImpl implements MailService {
                 new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
         message.setSubject(String.format(EMAIL_SUBJECT,startDateFormatted,endDateFormatted));
         message.setFrom(fromEmail,"[DISA_EPTS]");
-        message.setTo(notificationConfig.getMailList());
+        String [] mailList=notificationConfig.getMailList().split(",");
+        message.setTo(mailList);
 
         // Create the HTML body using Thymeleaf
         final String htmlContent = this.templateEngine.process("index.html", ctx);

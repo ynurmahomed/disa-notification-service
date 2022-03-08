@@ -60,7 +60,7 @@ public class FileUtils implements XLSColumnConstants {
 
     private static void composeThirdSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults, Workbook workbook) {
         Sheet sheet3= workbook.createSheet("CV não Sincronizados");
-        createFirstRow(workbook,sheet3,NOT_SYNCRONIZED_VIRAL_RESULTS,8);
+        createFirstRow(workbook,sheet3,NOT_SYNCRONIZED_VIRAL_RESULTS,6);
         createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
         AtomicInteger counter3 = new AtomicInteger(2);
         unsyncronizedViralLoadResults.stream()
@@ -75,7 +75,6 @@ public class FileUtils implements XLSColumnConstants {
         sheet3.autoSizeColumn(4);
         sheet3.autoSizeColumn(5);
         sheet3.autoSizeColumn(6);
-        sheet3.autoSizeColumn(7);
     }
 
     private static void composeSecondSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
@@ -83,7 +82,7 @@ public class FileUtils implements XLSColumnConstants {
         String startDateFormatted=lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         String endDateFormatted=lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet2 = workbook.createSheet("CV Recebidos");
-        createFirstRow(workbook,sheet2,VIRAL_RESULT_TITLE+startDateFormatted+" a "+endDateFormatted,10);
+        createFirstRow(workbook,sheet2,VIRAL_RESULT_TITLE+startDateFormatted+" a "+endDateFormatted,8);
         createRowHeader(workbook, sheet2, VIRAL_RESULTS_HEADER);
         AtomicInteger counter2 = new AtomicInteger(2);
         viralLoadResults.stream()
@@ -101,8 +100,6 @@ public class FileUtils implements XLSColumnConstants {
         sheet2.autoSizeColumn(6);
         sheet2.autoSizeColumn(7);
         sheet2.autoSizeColumn(8);
-        sheet2.autoSizeColumn(9);
-        sheet2.autoSizeColumn(10);
     }
 
     private static void composeFirstSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary, Workbook workbook) {
@@ -204,15 +201,13 @@ public class FileUtils implements XLSColumnConstants {
     private static void createViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
         row.createCell(COL0_REQUEST_ID).setCellValue(viralLoaderResult.getRequestId());
         row.createCell(COL1_NID).setCellValue(viralLoaderResult.getNID());
-        row.createCell(COL2_NAME).setCellValue(viralLoaderResult.getFirstName());
-        row.createCell(COL3_LAST_NAME).setCellValue(viralLoaderResult.getLastName());
-        row.createCell(COL4_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
-        row.createCell(COL5_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
-        row.createCell(COL6_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
-        row.createCell(COL7_CREATED_AT).setCellValue(viralLoaderResult.getCreatedAt().toString());
-        row.createCell(COL8_UPDATED_AT).setCellValue(viralLoaderResult.getUpdatedAt().toString());
-        row.createCell(COL9_VIRAL_RESULT_STATUS).setCellValue(viralLoaderResult.getViralLoadStatus());
-        row.createCell(COL10_VIRAL_RESULT_STATUS_CAUSE).setCellValue(viralLoaderResult.getNotProcessingCause());
+        row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
+        row.createCell(COL3_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
+        row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
+        row.createCell(COL5_CREATED_AT).setCellValue(viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        row.createCell(COL6_UPDATED_AT).setCellValue(viralLoaderResult.getUpdatedAt()!=null?viralLoaderResult.getUpdatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")):"");
+        row.createCell(COL7_VIRAL_RESULT_STATUS).setCellValue(viralLoaderResult.getViralLoadStatus());
+        row.createCell(COL8_VIRAL_RESULT_STATUS_CAUSE).setCellValue(viralLoaderResult.getNotProcessingCause());
     }
 
     private static void createPendingViralResultSummaryRow(Row row, PendingViralResultSummary pendingViralResultSummary) {
@@ -220,19 +215,17 @@ public class FileUtils implements XLSColumnConstants {
         row.createCell(COL1_HEALTH_FACILITY_CODE).setCellValue(pendingViralResultSummary.getHealthFacilityLabCode());
         row.createCell(COL2_HEALTH_FACILITY_NAME).setCellValue(pendingViralResultSummary.getFacilityName());
         row.createCell(COL3_TOTAL_PENDING).setCellValue(pendingViralResultSummary.getTotalPending());
-        row.createCell(COL4_LAST_SYNC_DATE).setCellValue(pendingViralResultSummary.getLastSyncDate()!=null?pendingViralResultSummary.getLastSyncDate().toString():"");
+        row.createCell(COL4_LAST_SYNC_DATE).setCellValue(pendingViralResultSummary.getLastSyncDate()!=null?pendingViralResultSummary.getLastSyncDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")):"");
     }
 
     private static void createUnsyncronizedViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
         row.createCell(COL0_REQUEST_ID).setCellValue(viralLoaderResult.getRequestId());
         row.createCell(COL1_NID).setCellValue(viralLoaderResult.getNID());
-        row.createCell(COL2_NAME).setCellValue(viralLoaderResult.getFirstName());
-        row.createCell(COL3_LAST_NAME).setCellValue(viralLoaderResult.getLastName());
-        row.createCell(COL4_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
-        row.createCell(COL5_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
-        row.createCell(COL6_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
-        row.createCell(COL7_SENT_DATE).setCellValue(viralLoaderResult.getCreatedAt().format(DateTimeFormatter.ISO_DATE));
-        row.createCell(COL8_STATUS).setCellValue((viralLoaderResult.getViralLoadStatus()));
+        row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
+        row.createCell(COL3_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
+        row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
+        row.createCell(COL5_SENT_DATE).setCellValue(viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        row.createCell(COL6_STATUS).setCellValue((viralLoaderResult.getViralLoadStatus()));
     }
 
 }

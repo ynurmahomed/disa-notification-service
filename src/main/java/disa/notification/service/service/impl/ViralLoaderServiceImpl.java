@@ -55,7 +55,7 @@ public class ViralLoaderServiceImpl  implements ViralLoaderService {
 
     private LocalDateTime getLastSyncDate(PendingHealthFacilitySummary pendingHealthFacilitySummary) {
         LastSyncDate  lastSyncDate=viralLoaderRepository.findLastSyncDateByHFCodeAndName(pendingHealthFacilitySummary.getHealthFacilityLabCode());
-        return lastSyncDate.getLastSyncDate();
+        return lastSyncDate!=null?lastSyncDate.getLastSyncDate():null;
     }
 
     @Override
