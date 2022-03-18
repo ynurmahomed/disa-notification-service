@@ -1,12 +1,10 @@
 package disa.notification.service.service;
 
 import disa.notification.service.entity.NotificationConfig;
-import disa.notification.service.entity.PendingViralResultSummary;
 import disa.notification.service.service.interfaces.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +36,7 @@ public class ViralResultSenderTask {
             List<ViralLoaderResultSummary> result =viralLoaderService.findViralLoadsFromLastWeek(notificationConfig.getProvince());
             List<ViralLoaderResults> viralLoadResults=viralLoaderService.findViralLoadResultsFromLastWeek(notificationConfig.getProvince());
             List<ViralLoaderResults> unsyncronizedViralLoadResults =viralLoaderService.findUnsyncronizedViralResults(notificationConfig.getProvince());
-            List<PendingViralResultSummary> pendingHealthFacilitySummaries=viralLoaderService.findPendingHealthFacilitySummary(notificationConfig.getProvince());
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries=viralLoaderService.findPendingHealthFacilitySummary(notificationConfig.getProvince());
 
             if( !result.isEmpty() || !unsyncronizedViralLoadResults.isEmpty() ){
                 log.info("A enviar email...");
@@ -50,7 +48,7 @@ public class ViralResultSenderTask {
 
     }
 
-    private void sendViralLoads(NotificationConfig notificationConfig, List<ViralLoaderResultSummary> result, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingViralResultSummary> pendingHealthFacilitySummaries) {
+    private void sendViralLoads(NotificationConfig notificationConfig, List<ViralLoaderResultSummary> result, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
         try {
             mailService.sendEmail(notificationConfig, result,viralLoadResults,unsyncronizedViralLoadResults,pendingHealthFacilitySummaries);
         } catch (MessagingException| UnsupportedEncodingException e) {

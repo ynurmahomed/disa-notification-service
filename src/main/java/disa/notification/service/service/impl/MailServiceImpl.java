@@ -1,8 +1,8 @@
 package disa.notification.service.service.impl;
 
 import disa.notification.service.entity.NotificationConfig;
-import disa.notification.service.entity.PendingViralResultSummary;
 import disa.notification.service.service.interfaces.MailService;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
 import disa.notification.service.service.interfaces.ViralLoaderResults;
 import disa.notification.service.utils.DateInterval;
@@ -34,7 +34,7 @@ public class MailServiceImpl implements MailService {
     private String fromEmail;
 
     @Override
-    public void sendEmail(final NotificationConfig notificationConfig, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingViralResultSummary> pendingHealthFacilitySummaries) throws MessagingException, UnsupportedEncodingException {
+    public void sendEmail(final NotificationConfig notificationConfig, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws MessagingException, UnsupportedEncodingException {
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
         DateInterval lastWeekInterval= DateTimeUtils.getLastWeekInterVal();
