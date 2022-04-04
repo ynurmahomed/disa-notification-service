@@ -30,9 +30,9 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries[0][0]="Total Recebidos";
         dictionaries[0][1]="Número total de resultados de Carga Viral (CV) criados no staging server";
         dictionaries[1][0]="No. Processados";
-        dictionaries[1][1]="Número de resultados de CV criados no stagin server que foram processados (NID indentificado e FSR criado no OpenMRS/EPTS)";
+        dictionaries[1][1]="Número de resultados de CV criados no staging server que foram processados (NID identificado e FSR criado no OpenMRS/EPTS)";
         dictionaries[2][0]="Não Processados: No. Sem Resultados";
-        dictionaries[2][1]="Número de resultados de CV criados no staging server que não foram processados (não tem FSR criado no OpenMRS/EPTS) porque o resultados não tem valor.";
+        dictionaries[2][1]="Número de resultados de CV criados no staging server que não foram processados (não tem FSR criado no OpenMRS/EPTS) porque o resultado não tem valor.";
         dictionaries[3][0]="Não Processados: No. NID não encontrado";
         dictionaries[3][1]="Número de resultados de CV criados no staging server que não foram processados (não tem FSR criado no OpenMRS/EPTS) porque o NID do paciente não foi encontrado no OpenMRS/EPTS.";
         dictionaries[4][0]="No. Pendentes";
