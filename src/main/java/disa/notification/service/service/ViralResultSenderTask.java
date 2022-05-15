@@ -23,8 +23,9 @@ public class ViralResultSenderTask {
     private final ViralLoaderService viralLoaderService;
     private final MailService mailService;
 
-    //Todas as segundas feiras as 8h
-    @Scheduled(cron = "0 0 8 * * MON")
+    //Todas as segundas feiras as 8h30min (O servidor tem duas horas a menos)
+    //@Scheduled(cron = "0 30 6 * * MON")
+    @Scheduled(cron = "0 1/2 * * * *")
     public void sendViralResultReport() {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
         log.info("A Compor Dados para envio");
