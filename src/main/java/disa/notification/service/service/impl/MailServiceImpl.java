@@ -49,7 +49,7 @@ public class MailServiceImpl implements MailService {
         final MimeMessageHelper message =
                 new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
         message.setSubject(String.format(EMAIL_SUBJECT,startDateFormatted,endDateFormatted));
-        message.setFrom(fromEmail,"[DISA_EPTS]");
+        message.setFrom(fromEmail,"[DISA_SESP]");
         String [] mailList=notificationConfig.getMailList().split(",");
         message.setTo(mailList);
 

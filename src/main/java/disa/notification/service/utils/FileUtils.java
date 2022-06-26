@@ -36,25 +36,25 @@ public class FileUtils implements XLSColumnConstants {
 
     static {
         dictionaries[0][0] = "Total Recebidos";
-        dictionaries[0][1] = "Número total de resultados de Carga Viral (CV) criados no staging server";
+        dictionaries[0][1] = "Número total de resultados de Carga Viral (CV) criados no integration  server";
         dictionaries[1][0] = "No. Processados";
-        dictionaries[1][1] = "Número de resultados de CV criados no staging server que foram processados (NID identificado e FSR criado no OpenMRS/EPTS)";
+        dictionaries[1][1] = "Número de resultados de CV criados no integration  server que foram processados (NID identificado e FSR criado no SESP)";
         dictionaries[2][0] = "Não Processados: No. Sem Resultados";
-        dictionaries[2][1] = "Número de resultados de CV criados no staging server que não foram processados (não tem FSR criado no OpenMRS/EPTS) porque o resultado não tem valor.";
+        dictionaries[2][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor.";
         dictionaries[3][0] = "Não Processados: No. NID não encontrado";
-        dictionaries[3][1] = "Número de resultados de CV criados no staging server que não foram processados (não tem FSR criado no OpenMRS/EPTS) porque o NID do paciente não foi encontrado no OpenMRS/EPTS.";
+        dictionaries[3][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
         dictionaries[4][0] = "No. Pendentes";
-        dictionaries[4][1] = "Número de resultados de CV criados no staging server que ainda não foram sincronizados com OpenMRS/EPTS";
+        dictionaries[4][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
         dictionaries[5][0] = "Data de Entrada";
-        dictionaries[5][1] = "Data que o resultado de CV foi criado no staging server";
+        dictionaries[5][1] = "Data que o resultado de CV foi criado no integration  server";
         dictionaries[6][0] = "Data de Sincronização";
-        dictionaries[6][1] = "Data que o staging server sincronizou os resultados de CV com OpenMRS/EPTS";
+        dictionaries[6][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
         dictionaries[7][0] = "Estado";
-        dictionaries[7][1] = "O estado actual do resultado de CV no staging server, incluindo: Processado (FSR criado em OpenMRS/EPTS); Não Processado (sem FSR criado no OpenMRS/EPTS) ou Pendentes (ainda não foi sincronizado com OpenMRS/EPTS).";
+        dictionaries[7][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
         dictionaries[8][0] = "Motivo não envio";
         dictionaries[8][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado ou Sem Resultados.";
         dictionaries[9][0] = "Data da última sincronização ";
-        dictionaries[9][1] = "Data da última sincronização feita entre o staging server e OpenMRS/EPTS na US";
+        dictionaries[9][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
     }
 
     private static void composeDictionarySheet(Workbook workbook) {
@@ -95,11 +95,11 @@ public class FileUtils implements XLSColumnConstants {
             List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
             composeDictionarySheet(workbook);
+            composeFifthSheet(viralLoaderResultSummary, workbook);
             composeFirstSheet(viralLoaderResultSummary, workbook);
             composeSecondSheet(viralLoadResults, workbook);
             composeThirdSheet(unsyncronizedViralLoadResults, workbook);
             composeFourthSheet(pendingHealthFacilitySummaries, workbook);
-            composeFifthSheet(viralLoaderResultSummary, workbook);
             workbook.write(stream);
             return new ByteArrayResource(stream.toByteArray());
         } catch (IOException ioe) {
@@ -108,8 +108,11 @@ public class FileUtils implements XLSColumnConstants {
     }
 
     private static void composeFifthSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList, Workbook workbook) {
+        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet4 = workbook.createSheet("CV Recebidas por Distrito");
-        createFirstRow(workbook, sheet4, STATS_TITLE, 5);
+        createFirstRow(workbook, sheet4, STATS_TITLE + startDateFormatted + " a " + endDateFormatted, 5);
         createRowHeader(workbook, sheet4, VIRAL_STAT_HEADER);
         AtomicInteger counter4 = new AtomicInteger(2);
 

@@ -32,12 +32,12 @@ public interface XLSColumnConstants {
     int COL5_SENT_DATE= 5;
     int COL6_STATUS = 6;
 
-    String VIRAL_RESULT_SUMMARY_TITLE="Resultados de CV Recebidos no Staging Server no Periodo de ";
-    String VIRAL_RESULT_TITLE="Resultados de CV Recebidos no Staging Server no Periodo de  ";
-    String NOT_SYNCRONIZED_VIRAL_RESULTS="Resultados de CV Pendentes no Staging Server há mais de 48 horas por NID (Cumulativo)";
-    String PENDING_VIRAL_RESULT_SUMMARY="Resultados de CV Pendentes no Staging Server há mais de 48 horas por US ";
+    String VIRAL_RESULT_SUMMARY_TITLE="Resultados de CV Recebidos no Integration  Server no Periodo de ";
+    String VIRAL_RESULT_TITLE="Resultados de CV Recebidos no Integration  Server no Periodo de  ";
+    String NOT_SYNCRONIZED_VIRAL_RESULTS="Resultados de CV Pendentes no Integration  Server há mais de 48 horas por NID (Cumulativo)";
+    String PENDING_VIRAL_RESULT_SUMMARY="Resultados de CV Pendentes no Integration  Server há mais de 48 horas por US ";
 
-    String STATS_TITLE="Resultados de CVs por Distrito";
+    String STATS_TITLE="Resultados de CVs por Distrito recebidos no Periodo de ";
 
 
     String[] PENDING_VIRAL_RESULT_SUMMARY_HEADER = {"Distrito","Código da US","Nome da US","No. CVs Pendentes", "Data da Última Sincronização"};

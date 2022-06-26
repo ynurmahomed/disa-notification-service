@@ -33,10 +33,10 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
             " from VlData where  RequestingProvinceName = :province AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 ",nativeQuery = true)
     List<ViralLoaderResults> findUnsicronizedViralLoadResults(@Param("province") String province);
 
-    @Query(value = "select VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending,lastSync.lastSyncDate " +
-            "from (SELECT RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,RequestingFacilityName as facilityName,Count(RequestingDistrictName) as  totalPending " +
-            "from VlData where RequestingProvinceName = :province AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 group by RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
-            "left join (SELECT RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingProvinceName = :province " +
-            "group by RequestingDistrictName,RequestingFacilityCode ) lastSync on VLPendente.healthFacilityLabCode=lastSync.healthFacilityLabCode",nativeQuery = true)
+    @Query(value = "select VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending " +
+            ",lastSync.lastSyncDate from (SELECT RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,RequestingFacilityName as facilityName,Count(RequestingDistrictName) as  totalPending " +
+            "   from VlData where RequestingProvinceName = :province AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2  group by RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
+            "  left join (SELECT RequestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingProvinceName = :province" +
+            "  group by RequestingDistrictName,RequestingFacilityCode ) lastSync on VLPendente.healthFacilityLabCode=lastSync.healthFacilityLabCode and VLPendente.requestingDistrictName=lastSync.RequestingDistrictName",nativeQuery = true)
     List<PendingHealthFacilitySummary> findUnsincronizedHealthFacilities(@Param("province") String province);
 }
