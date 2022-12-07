@@ -9,4 +9,6 @@ public interface ViralLoaderResultSummary {
     int getProcessed();
     int getNotProcessedNoResult();
     int getNotProcessedNidNotFount();
+    int getNotProcessedDuplicateNid();
+    int getNotProcessedFlaggedForReview();
 }

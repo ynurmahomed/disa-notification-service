@@ -20,11 +20,7 @@ public class ViralResultStatisticsCollector
     @Override
     public BiConsumer<ViralResultStatistics, ViralLoaderResultSummary> accumulator() {
         return (stats, summary) -> {
-            stats.setTotal(stats.getTotal() + summary.getTotalReceived());
-            stats.setProcessed(stats.getProcessed() + summary.getProcessed());
-            stats.setPending(stats.getPending() + summary.getTotalPending());
-            stats.setNoProcessedNoResult(stats.getNoProcessedNoResult() + summary.getNotProcessedNoResult());
-            stats.setNoProcessedNidNotFound(stats.getNoProcessedNidNotFound() + summary.getNotProcessedNidNotFount());
+            stats.accumulate(summary);
         };
     }
 
@@ -36,12 +32,7 @@ public class ViralResultStatisticsCollector
     @Override
     public BinaryOperator<ViralResultStatistics> combiner() {
         return (stats, other) -> {
-            stats.setTotal(stats.getTotal() + other.getTotal());
-            stats.setProcessed(stats.getProcessed() + other.getProcessed());
-            stats.setPending(stats.getPending() + other.getPending());
-            stats.setNoProcessedNoResult(stats.getNoProcessedNoResult() + other.getNoProcessedNoResult());
-            stats.setNoProcessedNidNotFound(stats.getNoProcessedNidNotFound() + other.getNoProcessedNidNotFound());
-            return stats;
+            return stats.combine(other);
         };
     }
 
