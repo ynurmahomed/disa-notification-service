@@ -52,7 +52,7 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries[3][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
         dictionaries[4][0] = "Não Processados: No. NID duplicado";
         dictionaries[4][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente está duplicado no SESP.";
-        dictionaries[5][0] = "Não Processados: Sinalizado p rever";
+        dictionaries[5][0] = "Não Processados: Sinalizado para revisão";
         dictionaries[5][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
         dictionaries[6][0] = "No. Pendentes";
         dictionaries[6][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
@@ -106,11 +106,11 @@ public class FileUtils implements XLSColumnConstants {
             List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
             composeDictionarySheet(workbook);
-            composeFifthSheet(viralLoaderResultSummary, workbook);
-            composeFirstSheet(viralLoaderResultSummary, workbook);
-            composeSecondSheet(viralLoadResults, workbook);
-            composeThirdSheet(unsyncronizedViralLoadResults, workbook);
-            composeFourthSheet(pendingHealthFacilitySummaries, workbook);
+            composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
+            composeReceivedByUSSheet(viralLoaderResultSummary, workbook);
+            composeReceivedByNIDSheet(viralLoadResults, workbook);
+            composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
+            composePendingByUSSheet(pendingHealthFacilitySummaries, workbook);
             workbook.write(stream);
             return new ByteArrayResource(stream.toByteArray());
         } catch (IOException ioe) {
@@ -118,7 +118,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    public static void composeFifthSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList,
+    public static void composeReceivedByDistrictSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList,
             Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
@@ -126,7 +126,7 @@ public class FileUtils implements XLSColumnConstants {
         String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet4 = workbook.createSheet("CV Recebidas por Distrito");
-        createFirstRow(workbook, sheet4, STATS_TITLE + startDateFormatted + " a " + endDateFormatted, 5);
+        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 5);
         createRowHeader(workbook, sheet4, VIRAL_STAT_HEADER);
         AtomicInteger counter4 = new AtomicInteger(2);
 
@@ -166,7 +166,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(13);
     }
 
-    private static void composeFourthSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries, Workbook workbook) {
+    private static void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries, Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("CV Pendentes por US");
         createFirstRow(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY, 4);
         createRowHeader(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY_HEADER);
@@ -183,7 +183,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(4);
     }
 
-    private static void composeThirdSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults, Workbook workbook) {
+    private static void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults, Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("CV Pendentes por NID");
         createFirstRow(workbook, sheet3, NOT_SYNCRONIZED_VIRAL_RESULTS, 7);
         createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
@@ -203,12 +203,12 @@ public class FileUtils implements XLSColumnConstants {
         sheet3.autoSizeColumn(7);
     }
 
-    private static void composeSecondSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
+    private static void composeReceivedByNIDSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet2 = workbook.createSheet("CV Recebidas por NID");
-        createFirstRow(workbook, sheet2, VIRAL_RESULT_TITLE + startDateFormatted + " a " + endDateFormatted, 9);
+        createFirstRow(workbook, sheet2, String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted), 9);
         createRowHeader(workbook, sheet2, VIRAL_RESULTS_HEADER);
         AtomicInteger counter2 = new AtomicInteger(2);
         viralLoadResults.stream()
@@ -228,12 +228,12 @@ public class FileUtils implements XLSColumnConstants {
         sheet2.autoSizeColumn(8);
     }
 
-    private static void composeFirstSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary, Workbook workbook) {
+    private static void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary, Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet = workbook.createSheet("CV Recebidas por US");
-        createFirstRow(workbook, sheet, VIRAL_RESULT_SUMMARY_TITLE + startDateFormatted + " a " + endDateFormatted + " por US", 6);
+        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted), 6);
         createSummaryRowHeader(workbook, sheet, VIRAL_RESULT_SUMMARY_HEADER);
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream()
