@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+  table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+    </style>
+    <title th:remove="all">Sincronização de Cargas Virais</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p >
+    Caros,
+</p>
+<p>
+    Não foram enviados dados de cargas virais, pela APHL para o servidor de integração, e consequentemente não haviam dados por sincronizar para SESP, durante o período de
+    <b th:text="${fromDate}"></b> a <b th:text="${toDate}"></b>.
+</p>
+
+
+</p>
+<p>
+    Cumprimentos <br />
+
+</p>
+</body>
+</html>

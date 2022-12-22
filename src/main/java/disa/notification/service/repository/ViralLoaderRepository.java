@@ -31,7 +31,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
             "RequestingFacilityCode as healthFacilityLabCode, VIRAL_LOAD_STATUS as viralLoadStatus, NOT_PROCESSING_CAUSE as notProcessingCause, " +
             "CREATED_AT as createdAt " +
             " from VlData where  RequestingProvinceName = :province AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 ",nativeQuery = true)
-    List<ViralLoaderResults> findUnsicronizedViralLoadResults(@Param("province") String province);
+    List<ViralLoaderResults> findViralLoadResultsPendingMoreThan2Days(@Param("province") String province);
 
     @Query(value = "select VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending " +
             ",lastSync.lastSyncDate from (SELECT RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,RequestingFacilityName as facilityName,Count(RequestingDistrictName) as  totalPending " +

@@ -63,4 +63,31 @@ public class MailServiceImpl implements MailService {
         // Send mail
         this.mailSender.send(mimeMessage);
     }
+
+    @Override
+    public void sendNoResultsEmail(NotificationConfig notificationConfig)
+            throws MessagingException, UnsupportedEncodingException {
+
+        Context ctx = new Context(new Locale("pt", "BR"));
+        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        ctx.setVariable("fromDate", startDateFormatted);
+        ctx.setVariable("toDate", endDateFormatted);
+
+        final MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+        final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
+        message.setSubject(String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted));
+        message.setFrom(fromEmail, "[DISA_SESP]");
+        String[] mailList = notificationConfig.getMailList().split(",");
+        message.setTo(mailList);
+
+        final String htmlContent = this.templateEngine.process("noResults.html", ctx);
+        message.setText(htmlContent, true);
+
+        this.mailSender.send(mimeMessage);
+
+    }
 }
