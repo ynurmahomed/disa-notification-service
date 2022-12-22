@@ -26,7 +26,7 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
-    public static final String EMAIL_SUBJECT = "Relatorio de Sincronizacao de cargas virais de %s a %s";
+    public static final String EMAIL_SUBJECT = "Relatório de Sincronização de cargas virais de %s a %s";
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
