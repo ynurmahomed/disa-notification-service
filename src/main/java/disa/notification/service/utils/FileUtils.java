@@ -22,6 +22,8 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -37,9 +39,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileUtils implements XLSColumnConstants {
+
+    private static Logger logger = LoggerFactory.getLogger(FileUtils.class);
+
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static DecimalFormat percentFormatter = new DecimalFormat("##.#%");
-    private static String[][] dictionaries = new String[12][2];
+    private static String[][] dictionaries = new String[13][2];
 
     static {
         dictionaries[0][0] = "Total Recebidos";
@@ -52,20 +57,22 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries[3][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
         dictionaries[4][0] = "Não Processados: No. NID duplicado";
         dictionaries[4][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente está duplicado no SESP.";
-        dictionaries[5][0] = "Não Processados: Sinalizado para revisão";
-        dictionaries[5][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
-        dictionaries[6][0] = "No. Pendentes";
-        dictionaries[6][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
-        dictionaries[7][0] = "Data de Entrada";
-        dictionaries[7][1] = "Data que o resultado de CV foi criado no integration  server";
-        dictionaries[8][0] = "Data de Sincronização";
-        dictionaries[8][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
-        dictionaries[9][0] = "Estado";
-        dictionaries[9][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
-        dictionaries[10][0] = "Motivo não envio";
-        dictionaries[10][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado ou Sem Resultados.";
-        dictionaries[11][0] = "Data da última sincronização ";
-        dictionaries[11][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
+        dictionaries[5][0] = "Não Processados: No. ID da requisição duplicado";
+        dictionaries[5][1] = "Número de resultados de CV criados no servidor de integração que não foram processados (não tem FSR criado no SESP) porque há um processo com o mesmo código de requisição que já foi processado com sucesso anteriormente.";
+        dictionaries[6][0] = "Não Processados: Sinalizado para revisão";
+        dictionaries[6][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
+        dictionaries[7][0] = "No. Pendentes";
+        dictionaries[7][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
+        dictionaries[8][0] = "Data de Entrada";
+        dictionaries[8][1] = "Data que o resultado de CV foi criado no integration  server";
+        dictionaries[9][0] = "Data de Sincronização";
+        dictionaries[9][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
+        dictionaries[10][0] = "Estado";
+        dictionaries[10][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
+        dictionaries[11][0] = "Motivo não envio";
+        dictionaries[11][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado ou Sem Resultados.";
+        dictionaries[12][0] = "Data da última sincronização ";
+        dictionaries[12][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
     }
 
     private static void composeDictionarySheet(Workbook workbook) {
@@ -164,6 +171,8 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(11);
         sheet4.autoSizeColumn(12);
         sheet4.autoSizeColumn(13);
+        sheet4.autoSizeColumn(14);
+        sheet4.autoSizeColumn(15);
     }
 
     private static void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries, Workbook workbook) {
@@ -251,6 +260,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet.autoSizeColumn(7);
         sheet.autoSizeColumn(8);
         sheet.autoSizeColumn(9);
+        sheet.autoSizeColumn(10);
     }
 
     private static void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
@@ -276,7 +286,7 @@ public class FileUtils implements XLSColumnConstants {
             cell.setCellStyle(headerCellStyle);
         }
         // Merge not processed header
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 9));
+        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 10));
 
     }
 
@@ -348,7 +358,9 @@ public class FileUtils implements XLSColumnConstants {
                 .setCellValue(viralLoaderResult.getNotProcessedNidNotFount());
         row.createCell(COL8_NOT_PROCESSED_DUPLICATED_NID)
                 .setCellValue(viralLoaderResult.getNotProcessedDuplicateNid());
-        row.createCell(COL9_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
+        row.createCell(COL9_NOT_PROCESSED_DUPLICATED_REQUEST_ID)
+                .setCellValue(viralLoaderResult.getNotProcessedDuplicatedRequestId());
+        row.createCell(COL10_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
                 .setCellValue(viralLoaderResult.getNotProcessedFlaggedForReview());
     }
 
@@ -420,14 +432,22 @@ public class FileUtils implements XLSColumnConstants {
         duplicatedNidPercent.setCellStyle(getPercentCellStyle(workbook));
         duplicatedNidPercent.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
 
-        row.createCell(STAT11_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
+        row.createCell(STAT11_NOT_PROCESSED_DUPLICATED_REQUEST_ID)
                 .setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
 
-        Cell flaggedPercent = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        Cell flaggedPercent = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID);
         flaggedPercent.setCellStyle(getPercentCellStyle(workbook));
         flaggedPercent.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
 
-        row.createCell(STAT13_TOTAL_RECEIVED).setCellValue(viralResultStatistics.getTotal());
+
+        row.createCell(STAT13_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
+                .setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqId());
+
+        Cell duplicatedReqIdPercent = row.createCell(STAT14_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        duplicatedReqIdPercent.setCellStyle(getPercentCellStyle(workbook));
+        duplicatedReqIdPercent.setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqIdPercentage());
+
+        row.createCell(STAT15_TOTAL_RECEIVED).setCellValue(viralResultStatistics.getTotal());
     }
 
     private static void createStatLastResultRow(Workbook workbook, Row row,
@@ -478,17 +498,25 @@ public class FileUtils implements XLSColumnConstants {
         cell10.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
         cell10.setCellStyle(getBoldPercentCellStyle(workbook));
 
-        Cell cell11 = row.createCell(STAT11_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        Cell cell11 = row.createCell(STAT11_NOT_PROCESSED_DUPLICATED_REQUEST_ID);
         cell11.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
         cell11.setCellStyle(getBoldStyle(workbook));
 
-        Cell cell12 = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        Cell cell12 = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID);
         cell12.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
         cell12.setCellStyle(getBoldPercentCellStyle(workbook));
 
-        Cell cel13 = row.createCell(STAT13_TOTAL_RECEIVED);
-        cel13.setCellValue(viralResultStatistics.getTotal());
-        cel13.setCellStyle(getBoldStyle(workbook));
+        Cell cell13 = row.createCell(STAT13_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        cell13.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
+        cell13.setCellStyle(getBoldStyle(workbook));
+
+        Cell cell14 = row.createCell(STAT14_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
+        cell14.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
+        cell14.setCellStyle(getBoldPercentCellStyle(workbook));
+
+        Cell cel15 = row.createCell(STAT15_TOTAL_RECEIVED);
+        cel15.setCellValue(viralResultStatistics.getTotal());
+        cel15.setCellStyle(getBoldStyle(workbook));
     }
 
     private static CellStyle getTotalsCellStyle(Workbook workbook) {

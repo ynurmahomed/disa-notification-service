@@ -42,10 +42,8 @@ public class ViralResultSenderTask {
                 log.info("A enviar email...");
                 sendViralLoads(notificationConfig,result, viralLoadResults,unsyncronizedViralLoadResults,pendingHealthFacilitySummaries);
             }
-
-
         }
-
+        System.exit(0);
     }
 
     private void sendViralLoads(NotificationConfig notificationConfig, List<ViralLoaderResultSummary> result, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {

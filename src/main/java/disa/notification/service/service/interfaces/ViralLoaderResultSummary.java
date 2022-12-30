@@ -11,4 +11,5 @@ public interface ViralLoaderResultSummary {
     int getNotProcessedNidNotFount();
     int getNotProcessedDuplicateNid();
     int getNotProcessedFlaggedForReview();
+    int getNotProcessedDuplicatedRequestId();
 }
