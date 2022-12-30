@@ -250,6 +250,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet.autoSizeColumn(6);
         sheet.autoSizeColumn(7);
         sheet.autoSizeColumn(8);
+        sheet.autoSizeColumn(9);
     }
 
     private static void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
@@ -274,7 +275,8 @@ public class FileUtils implements XLSColumnConstants {
             cell.setCellValue(columnHeaders[col]);
             cell.setCellStyle(headerCellStyle);
         }
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 7));
+        // Merge not processed header
+        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 9));
 
     }
 
@@ -344,7 +346,9 @@ public class FileUtils implements XLSColumnConstants {
                 .setCellValue(viralLoaderResult.getNotProcessedNoResult());
         row.createCell(COL7_NOT_PROCESSED_NID_NOT_FOUND)
                 .setCellValue(viralLoaderResult.getNotProcessedNidNotFount());
-        row.createCell(COL8_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
+        row.createCell(COL8_NOT_PROCESSED_DUPLICATED_NID)
+                .setCellValue(viralLoaderResult.getNotProcessedDuplicateNid());
+        row.createCell(COL9_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
                 .setCellValue(viralLoaderResult.getNotProcessedFlaggedForReview());
     }
 

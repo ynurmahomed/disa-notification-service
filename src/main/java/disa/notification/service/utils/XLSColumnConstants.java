@@ -19,7 +19,7 @@ public interface XLSColumnConstants {
     int COL9_VIRAL_RESULT_STATUS_CAUSE = 9;
 
     String[] VIRAL_RESULT_SUMMARY_HEADER = { "Distrito", "Código da US", "Nome da US", "Total Recebidos",
-            "No. Processados ", "No. Pendentes", "No. Sem Resultados", "No. NID nao encontrado", "No. Sinalizado para Revisão"};
+            "No. Processados ", "No. Pendentes", "No. Sem Resultados", "No. NID nao encontrado", "No. NID duplicado", "No. Sinalizado para Revisão"};
     int COL0_DISTRICT = 0;
     int COL1_HEALTH_FACILITY_CODE= 1;
     int COL2_HEALTH_FACILITY_NAME = 2;
@@ -28,7 +28,8 @@ public interface XLSColumnConstants {
     int COL5_TOTAL_PENDING= 5;
     int COL6_NOT_PROCESSED_NO_RESULT= 6;
     int COL7_NOT_PROCESSED_NID_NOT_FOUND= 7;
-    int COL8_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 8;
+    int COL8_NOT_PROCESSED_DUPLICATED_NID=8;
+    int COL9_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 9;
 
     String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = {"REQUEST_ID", "NID", "Distrito","Codigo da US","Nome da US","Data de Envio","Estado"};
     int COL5_SENT_DATE= 5;
