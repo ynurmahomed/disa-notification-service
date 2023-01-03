@@ -70,7 +70,7 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries[10][0] = "Estado";
         dictionaries[10][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
         dictionaries[11][0] = "Motivo não envio";
-        dictionaries[11][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado ou Sem Resultados.";
+        dictionaries[11][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado, NID duplicado, ID de requisição duplicado, Sinalizado para revisão, Sem Resultados.";
         dictionaries[12][0] = "Data da última sincronização ";
         dictionaries[12][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
     }
