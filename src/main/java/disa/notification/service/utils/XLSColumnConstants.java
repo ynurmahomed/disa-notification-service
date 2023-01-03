@@ -1,7 +1,5 @@
 package disa.notification.service.utils;
 
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
-
 public interface XLSColumnConstants {
     int FIRST_ROW = 0;
     int FIRST_COL = 0;
@@ -21,18 +19,29 @@ public interface XLSColumnConstants {
 
     int COL9_VIRAL_RESULT_STATUS_CAUSE = 9;
 
-    String[] VIRAL_RESULT_SUMMARY_HEADER = {
-            "Distrito",
-            "Código da US",
-            "Nome da US",
-            "Total Recebidos",
-            "No. Processados ",
-            "No. Pendentes",
-            "No. Sem Resultados",
-            "No. NID nao encontrado",
-            "No. NID duplicado",
-            "No. ID da requisição duplicado",
-            "No. Sinalizado para Revisão" };
+    enum ResultsByHFSummary {
+        DISTRICT("Distrito"),
+        HEALTH_FACILITY_CODE("Código da US"),
+        HEALTH_FACILITY_NAME("Nome da US"),
+        TOTAL_RECEIVED("Total Recebidos"),
+        TOTAL_PROCESSED("No. Processados "),
+        TOTAL_PENDING("No. Pendentes"),
+        NOT_PROCESSED_NO_RESULT("No. Sem Resultados"),
+        NOT_PROCESSED_NID_NOT_FOUND("No. NID nao encontrado"),
+        NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
+        NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado"),
+        NOT_PROCESSED_FLAGGED_FOR_REVIEW("No. Sinalizado para Revisão");
+
+        private final String header;
+
+        ResultsByHFSummary(String header) {
+            this.header = header;
+        }
+
+        public String header() {
+            return header;
+        }
+    }
 
     int COL0_DISTRICT = 0;
     int COL1_HEALTH_FACILITY_CODE = 1;
@@ -64,6 +73,35 @@ public interface XLSColumnConstants {
     int COL4_LAST_SYNC_DATE = 4;
 
     String[] DICTIONARY_HEADER = { "Variável", "Definição" };
+
+    enum ResultsByDistrictSummary {
+        DISTRICT("Distrito"),
+        TOTAL_PROCESSED("No. Processados "),
+        PERCENTAGE_PROCESSED("% Processados "),
+        TOTAL_PENDING("No. Pendentes"),
+        PERCENTAGE_PENDING("% Pendentes "),
+        NOT_PROCESSED_NO_RESULT("No. Sem Resultados"),
+        PERCENTAGE_NOT_PROCESSED_NO_RESULT("% Sem Resultados "),
+        NOT_PROCESSED_NID_NOT_FOUND("No. NID não encontrado"),
+        PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND("% NID não encontrado"),
+        NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
+        PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID ("% NID duplicado"),
+        NOT_PROCESSED_DUPLICATED_REQUEST_ID ("No. ID da requisição duplicado"),
+        PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID ("% ID da requisição duplicado"),
+        NOT_PROCESSED_FLAGGED_FOR_REVIEW ("No. Sinalizado para Revisão"),
+        PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW ("% Sinalizado para Revisão"),
+        TOTAL_RECEIVED ("Total Recebidos");
+
+        private final String header;
+
+        ResultsByDistrictSummary(String header) {
+            this.header = header;
+        }
+
+        public String header() {
+            return header;
+        }
+    }
 
     String[] VIRAL_STAT_HEADER = {
             "Distrito",
