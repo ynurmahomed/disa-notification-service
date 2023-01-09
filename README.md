@@ -10,7 +10,7 @@ Spring boot app for periodic sending of DISA EPTS interoperability reports.
 Run `mvn clean install`
 
 ## Running
-1.  Provide environment variables required by the `src/main/resources/application.properties` file:
+1.  Provide environment variables required by the `src/main/resources/application.properties` file.
 
     This can be done by creating a `.env` file:
 

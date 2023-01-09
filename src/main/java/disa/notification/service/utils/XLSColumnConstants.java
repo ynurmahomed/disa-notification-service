@@ -18,7 +18,8 @@ public interface XLSColumnConstants {
 
     int COL9_VIRAL_RESULT_STATUS_CAUSE = 9;
 
-    String[] VIRAL_RESULT_SUMMARY_HEADER = {"Distrito","Código da US","Nome da US","Total Recebidos","No. Processados ", "No. Pendentes", "No. Sem Resultados", "No. NID nao encontrado"};
+    String[] VIRAL_RESULT_SUMMARY_HEADER = { "Distrito", "Código da US", "Nome da US", "Total Recebidos",
+            "No. Processados ", "No. Pendentes", "No. Sem Resultados", "No. NID nao encontrado", "No. NID duplicado", "No. Sinalizado para Revisão"};
     int COL0_DISTRICT = 0;
     int COL1_HEALTH_FACILITY_CODE= 1;
     int COL2_HEALTH_FACILITY_NAME = 2;
@@ -27,17 +28,19 @@ public interface XLSColumnConstants {
     int COL5_TOTAL_PENDING= 5;
     int COL6_NOT_PROCESSED_NO_RESULT= 6;
     int COL7_NOT_PROCESSED_NID_NOT_FOUND= 7;
+    int COL8_NOT_PROCESSED_DUPLICATED_NID=8;
+    int COL9_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 9;
 
     String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = {"REQUEST_ID", "NID", "Distrito","Codigo da US","Nome da US","Data de Envio","Estado"};
     int COL5_SENT_DATE= 5;
     int COL6_STATUS = 6;
 
-    String VIRAL_RESULT_SUMMARY_TITLE="Resultados de CV Recebidos no Integration  Server no Periodo de ";
-    String VIRAL_RESULT_TITLE="Resultados de CV Recebidos no Integration  Server no Periodo de  ";
-    String NOT_SYNCRONIZED_VIRAL_RESULTS="Resultados de CV Pendentes no Integration  Server há mais de 48 horas por NID (Cumulativo)";
-    String PENDING_VIRAL_RESULT_SUMMARY="Resultados de CV Pendentes no Integration  Server há mais de 48 horas por US ";
+    String VIRAL_RESULT_SUMMARY_TITLE="Resultados de CV Recebidos no Servidor de Integração no Período de Domingo (%s) a Sábado (%s) da semana enterior por US";
+    String VIRAL_RESULT_TITLE="Resultados de CV Recebidos no Servidor de Integração no Periodo de Domingo (%s) a Sábado (%s) da semana anterior";
+    String NOT_SYNCRONIZED_VIRAL_RESULTS="Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
+    String PENDING_VIRAL_RESULT_SUMMARY="Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por US ";
 
-    String STATS_TITLE="Resultados de CVs por Distrito recebidos no Periodo de ";
+    String STATS_TITLE="Resultados de CVs por Distrito recebidos no Período de Domingo (%s) a Sábado (%s) da semana anterior";
 
 
     String[] PENDING_VIRAL_RESULT_SUMMARY_HEADER = {"Distrito","Código da US","Nome da US","No. CVs Pendentes", "Data da Última Sincronização"};
@@ -48,8 +51,12 @@ public interface XLSColumnConstants {
 
 
 
-    String[] VIRAL_STAT_HEADER = {"Distrito","No. Processados ","% Processados ", "No. Pendentes","% Pendentes ", "No. Sem Resultados", "% Sem Resultados ", "No. NID nao encontrado", "% NID nao encontrado","Total Recebidos"};
+    String[] VIRAL_STAT_HEADER = { "Distrito", "No. Processados ", "% Processados ", "No. Pendentes", "% Pendentes ",
+            "No. Sem Resultados", "% Sem Resultados ", "No. NID nao encontrado", "% NID nao encontrado",
+            "No. NID duplicado", "% NID duplicado", "No. Sinalizado para Revisão", "% Sinalizado para Revisão", "Total Recebidos" };
+
     int STAT0_DISTRICT = 0;
+
     int STAT1_TOTAL_PROCESSED = 1;
 
     int STAT2_PERCENTAGE_PROCESSED= 2;
@@ -66,8 +73,14 @@ public interface XLSColumnConstants {
 
     int STAT8_PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND= 8;
 
-    int STAT9_TOTAL_RECEIVED= 9;
+    int STAT9_NOT_PROCESSED_DUPLICATED_NID= 9;
 
+    int STAT10_PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID= 10;
 
+    int STAT11_NOT_PROCESSED_FLAGGED_FOR_REVIEW= 11;
+
+    int STAT12_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW= 12;
+
+    int STAT13_TOTAL_RECEIVED= 13;
 
 }
