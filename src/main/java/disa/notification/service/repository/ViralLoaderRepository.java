@@ -1,15 +1,16 @@
 package disa.notification.service.repository;
 
-import disa.notification.service.entity.ViralLoaderEntity;
-import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
-import disa.notification.service.service.interfaces.ViralLoaderResults;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import disa.notification.service.entity.ViralLoaderEntity;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
+import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.ViralLoaderResults;
 
 
 public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,Integer> {
@@ -18,7 +19,9 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
             "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS ='PROCESSED' THEN 1 END),0) AS processed," +
             "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS ='PENDING' THEN 1 END),0)  as totalPending, "+
             "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='NID_NOT_FOUND' THEN 1 END),0) AS notProcessedNidNotFount, " +
-            "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='NO_RESULT' THEN 1 END),0) AS notProcessedNoResult "+
+            "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='NO_RESULT' THEN 1 END),0) AS notProcessedNoResult, "+
+            "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='DUPLICATE_NID' THEN 1 END),0) AS notProcessedDuplicateNid, "+
+            "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='FLAGGED_FOR_REVIEW' THEN 1 END),0) AS notProcessedFlaggedForReview "+
             " from VlData where RequestingProvinceName = :province AND  CREATED_AT BETWEEN :startDateTime AND :endDateTime group by RequestingDistrictName,RequestingFacilityCode",nativeQuery = true)
     List<ViralLoaderResultSummary> findViralLoadResultSummary(@Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime,@Param("province") String province);
 
