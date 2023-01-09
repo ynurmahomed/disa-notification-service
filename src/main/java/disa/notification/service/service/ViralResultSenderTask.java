@@ -53,13 +53,4 @@ public class ViralResultSenderTask {
             }
         }
     }
-
-    private void sendViralLoads(NotificationConfig notificationConfig, List<ViralLoaderResultSummary> result, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
-        try {
-            mailService.sendEmail(notificationConfig, result,viralLoadResults,unsyncronizedViralLoadResults,pendingHealthFacilitySummaries);
-        } catch (MessagingException| UnsupportedEncodingException e) {
-            e.printStackTrace();
-            log.error("Erro ao enviar relatorio de Cargas virais");
-        }
-    }
 }
