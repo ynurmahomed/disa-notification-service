@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MailService {
     void sendEmail(NotificationConfig notificationConfig, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws MessagingException, UnsupportedEncodingException;
-
+    void sendNoResultsEmail(NotificationConfig notificationConfig) throws MessagingException, UnsupportedEncodingException;
 }

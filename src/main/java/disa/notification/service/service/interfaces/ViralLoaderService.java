@@ -9,7 +9,7 @@ public interface ViralLoaderService {
 
     List<ViralLoaderResults> findViralLoadResultsFromLastWeek(String province);
 
-    List<ViralLoaderResults> findUnsyncronizedViralResults(String province);
+    List<ViralLoaderResults> findViralLoadResultsPendingMoreThan2Days(String province);
 
     List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(String province);
 
