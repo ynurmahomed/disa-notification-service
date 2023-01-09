@@ -30,8 +30,8 @@ public class ViralLoaderServiceImpl  implements ViralLoaderService {
     }
 
     @Override
-    public List<ViralLoaderResults> findUnsyncronizedViralResults(String province) {
-        return viralLoaderRepository.findUnsicronizedViralLoadResults(province);
+    public List<ViralLoaderResults> findViralLoadResultsPendingMoreThan2Days(String province) {
+        return viralLoaderRepository.findViralLoadResultsPendingMoreThan2Days(province);
     }
 
     @Override
