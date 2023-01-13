@@ -51,7 +51,6 @@ public class ViralResultSenderTask {
             } catch (UnsupportedEncodingException | MessagingException e) {
                 log.error("Erro ao enviar relatório de Cargas virais", e);
             }
-
         }
     }
 }

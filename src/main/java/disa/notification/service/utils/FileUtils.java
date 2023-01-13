@@ -22,6 +22,8 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -37,9 +39,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileUtils implements XLSColumnConstants {
+
+    private static Logger logger = LoggerFactory.getLogger(FileUtils.class);
+
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static DecimalFormat percentFormatter = new DecimalFormat("##.#%");
-    private static String[][] dictionaries = new String[12][2];
+    private static String[][] dictionaries = new String[13][2];
 
     static {
         dictionaries[0][0] = "Total Recebidos";
@@ -52,20 +57,22 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries[3][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
         dictionaries[4][0] = "Não Processados: No. NID duplicado";
         dictionaries[4][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente está duplicado no SESP.";
-        dictionaries[5][0] = "Não Processados: Sinalizado para revisão";
-        dictionaries[5][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
-        dictionaries[6][0] = "No. Pendentes";
-        dictionaries[6][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
-        dictionaries[7][0] = "Data de Entrada";
-        dictionaries[7][1] = "Data que o resultado de CV foi criado no integration  server";
-        dictionaries[8][0] = "Data de Sincronização";
-        dictionaries[8][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
-        dictionaries[9][0] = "Estado";
-        dictionaries[9][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
-        dictionaries[10][0] = "Motivo não envio";
-        dictionaries[10][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado ou Sem Resultados.";
-        dictionaries[11][0] = "Data da última sincronização ";
-        dictionaries[11][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
+        dictionaries[5][0] = "Não Processados: No. ID da requisição duplicado";
+        dictionaries[5][1] = "Número de resultados de CV criados no servidor de integração que não foram processados (não tem FSR criado no SESP) porque há um processo com o mesmo código de requisição que já foi processado com sucesso anteriormente.";
+        dictionaries[6][0] = "Não Processados: Sinalizado para revisão";
+        dictionaries[6][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
+        dictionaries[7][0] = "No. Pendentes";
+        dictionaries[7][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
+        dictionaries[8][0] = "Data de Entrada";
+        dictionaries[8][1] = "Data que o resultado de CV foi criado no integration  server";
+        dictionaries[9][0] = "Data de Sincronização";
+        dictionaries[9][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
+        dictionaries[10][0] = "Estado";
+        dictionaries[10][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
+        dictionaries[11][0] = "Motivo não envio";
+        dictionaries[11][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado, NID duplicado, ID de requisição duplicado, Sinalizado para revisão, Sem Resultados.";
+        dictionaries[12][0] = "Data da última sincronização ";
+        dictionaries[12][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
     }
 
     private static void composeDictionarySheet(Workbook workbook) {
@@ -103,7 +110,8 @@ public class FileUtils implements XLSColumnConstants {
 
     public static Resource getViralResultXLS(
             List<ViralLoaderResultSummary> viralLoaderResultSummary, List<ViralLoaderResults> viralLoadResults,
-            List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
+            List<ViralLoaderResults> unsyncronizedViralLoadResults,
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
             composeDictionarySheet(workbook);
             composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
@@ -126,10 +134,19 @@ public class FileUtils implements XLSColumnConstants {
         String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet4 = workbook.createSheet("CV Recebidas por Distrito");
-        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 5);
-        createRowHeader(workbook, sheet4, VIRAL_STAT_HEADER);
-        AtomicInteger counter4 = new AtomicInteger(2);
 
+        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 5);
+
+        // Create headers
+        Row headerRow = sheet4.createRow(SECOND_ROW);
+        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
+            Cell cell = headerRow.createCell(r.ordinal());
+            cell.setCellValue(r.header());
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        AtomicInteger counter4 = new AtomicInteger(2);
         Map<String, ViralResultStatistics> groupedByDistrict = viralLoaderResultSummaryList.stream()
                 .collect(
                         Collectors.groupingBy(
@@ -164,9 +181,12 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(11);
         sheet4.autoSizeColumn(12);
         sheet4.autoSizeColumn(13);
+        sheet4.autoSizeColumn(14);
+        sheet4.autoSizeColumn(15);
     }
 
-    private static void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries, Workbook workbook) {
+    private static void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
+            Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("CV Pendentes por US");
         createFirstRow(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY, 4);
         createRowHeader(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY_HEADER);
@@ -183,7 +203,8 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(4);
     }
 
-    private static void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults, Workbook workbook) {
+    private static void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults,
+            Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("CV Pendentes por NID");
         createFirstRow(workbook, sheet3, NOT_SYNCRONIZED_VIRAL_RESULTS, 7);
         createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
@@ -205,8 +226,10 @@ public class FileUtils implements XLSColumnConstants {
 
     private static void composeReceivedByNIDSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet2 = workbook.createSheet("CV Recebidas por NID");
         createFirstRow(workbook, sheet2, String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted), 9);
         createRowHeader(workbook, sheet2, VIRAL_RESULTS_HEADER);
@@ -228,13 +251,17 @@ public class FileUtils implements XLSColumnConstants {
         sheet2.autoSizeColumn(8);
     }
 
-    private static void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary, Workbook workbook) {
+    private static void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary,
+            Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Sheet sheet = workbook.createSheet("CV Recebidas por US");
-        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted), 6);
-        createSummaryRowHeader(workbook, sheet, VIRAL_RESULT_SUMMARY_HEADER);
+        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted),
+                6);
+        createSummaryRowHeader(workbook, sheet);
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream()
                 .forEach(viralResult -> {
@@ -251,6 +278,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet.autoSizeColumn(7);
         sheet.autoSizeColumn(8);
         sheet.autoSizeColumn(9);
+        sheet.autoSizeColumn(10);
     }
 
     private static void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
@@ -262,7 +290,7 @@ public class FileUtils implements XLSColumnConstants {
         cell.setCellStyle(headerCellStyle);
     }
 
-    private static void createSummaryRowHeader(Workbook workbook, Sheet sheet, String[] columnHeaders) {
+    private static void createSummaryRowHeader(Workbook workbook, Sheet sheet) {
         CellStyle headerCellStyle = setHeaderCellStyle(workbook);
         Row headerRow2 = sheet.createRow(SECOND_ROW);
         Cell cell2 = headerRow2.createCell(6);
@@ -270,13 +298,13 @@ public class FileUtils implements XLSColumnConstants {
         cell2.setCellStyle(headerCellStyle);
 
         Row headerRow3 = sheet.createRow(THIRD_ROW);
-        for (int col = 0; col < columnHeaders.length; col++) {
-            Cell cell = headerRow3.createCell(col);
-            cell.setCellValue(columnHeaders[col]);
+        for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
+            Cell cell = headerRow3.createCell(byHfSummary.ordinal());
+            cell.setCellValue(byHfSummary.header());
             cell.setCellStyle(headerCellStyle);
         }
         // Merge not processed header
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 9));
+        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 10));
 
     }
 
@@ -289,7 +317,6 @@ public class FileUtils implements XLSColumnConstants {
             cell.setCellStyle(headerCellStyle);
         }
     }
-
 
     private static CellStyle getBoldStyle(Workbook workbook) {
         CellStyle headerStyle = workbook.createCellStyle();
@@ -330,26 +357,46 @@ public class FileUtils implements XLSColumnConstants {
     }
 
     private static void createViralResultSummaryRow(Row row, ViralLoaderResultSummary viralLoaderResult) {
-        row.createCell(COL0_DISTRICT)
-                .setCellValue(viralLoaderResult.getRequestingDistrictName());
-        row.createCell(COL1_HEALTH_FACILITY_CODE)
-                .setCellValue(StringUtils.center(viralLoaderResult.getHealthFacilityLabCode(), 11, " "));
-        row.createCell(COL2_HEALTH_FACILITY_NAME)
-                .setCellValue(viralLoaderResult.getFacilityName());
-        row.createCell(COL3_TOTAL_RECEIVED)
-                .setCellValue(viralLoaderResult.getTotalReceived());
-        row.createCell(COL4_TOTAL_PROCESSED)
-                .setCellValue(viralLoaderResult.getProcessed());
-        row.createCell(COL5_TOTAL_PENDING)
-                .setCellValue(viralLoaderResult.getTotalPending());
-        row.createCell(COL6_NOT_PROCESSED_NO_RESULT)
-                .setCellValue(viralLoaderResult.getNotProcessedNoResult());
-        row.createCell(COL7_NOT_PROCESSED_NID_NOT_FOUND)
-                .setCellValue(viralLoaderResult.getNotProcessedNidNotFount());
-        row.createCell(COL8_NOT_PROCESSED_DUPLICATED_NID)
-                .setCellValue(viralLoaderResult.getNotProcessedDuplicateNid());
-        row.createCell(COL9_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
-                .setCellValue(viralLoaderResult.getNotProcessedFlaggedForReview());
+        for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
+            Cell cell = row.createCell(byHfSummary.ordinal());
+            switch (byHfSummary) {
+                case DISTRICT:
+                    cell.setCellValue(viralLoaderResult.getRequestingDistrictName());
+                    break;
+                case HEALTH_FACILITY_CODE:
+                    cell.setCellValue(StringUtils.center(viralLoaderResult.getHealthFacilityLabCode(), 11, " "));
+                    break;
+                case HEALTH_FACILITY_NAME:
+                    cell.setCellValue(viralLoaderResult.getFacilityName());
+                    break;
+                case TOTAL_RECEIVED:
+                    cell.setCellValue(viralLoaderResult.getTotalReceived());
+                    break;
+                case TOTAL_PROCESSED:
+                    cell.setCellValue(viralLoaderResult.getProcessed());
+                    break;
+                case TOTAL_PENDING:
+                    cell.setCellValue(viralLoaderResult.getTotalPending());
+                    break;
+                case NOT_PROCESSED_NO_RESULT:
+                    cell.setCellValue(viralLoaderResult.getNotProcessedNoResult());
+                    break;
+                case NOT_PROCESSED_NID_NOT_FOUND:
+                    cell.setCellValue(viralLoaderResult.getNotProcessedNidNotFount());
+                    break;
+                case NOT_PROCESSED_DUPLICATED_NID:
+                    cell.setCellValue(viralLoaderResult.getNotProcessedDuplicateNid());
+                    break;
+                case NOT_PROCESSED_DUPLICATED_REQUEST_ID:
+                    cell.setCellValue(viralLoaderResult.getNotProcessedDuplicatedRequestId());
+                    break;
+                case NOT_PROCESSED_FLAGGED_FOR_REVIEW:
+                    cell.setCellValue(viralLoaderResult.getNotProcessedFlaggedForReview());
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private static void createViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
@@ -358,21 +405,29 @@ public class FileUtils implements XLSColumnConstants {
         row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
         row.createCell(COL3_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
         row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
-        row.createCell(COL5_CREATED_AT).setCellValue(viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        row.createCell(COL6_UPDATED_AT).setCellValue(viralLoaderResult.getUpdatedAt() != null ? viralLoaderResult.getUpdatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) : "");
+        row.createCell(COL5_CREATED_AT).setCellValue(
+                viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        row.createCell(COL6_UPDATED_AT).setCellValue(viralLoaderResult.getUpdatedAt() != null
+                ? viralLoaderResult.getUpdatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                : "");
         row.createCell(COL7_VIRAL_RESULT_STATUS).setCellValue(viralLoaderResult.getViralLoadStatus());
         row.createCell(COL8_VIRAL_RESULT_STATUS_CAUSE).setCellValue(viralLoaderResult.getNotProcessingCause());
         row.createCell(COL9_VIRAL_RESULT_STATUS_CAUSE).setCellValue(viralLoaderResult.getNotProcessingCause() != null
                 && viralLoaderResult.getNotProcessingCause().trim().equals("NID_NOT_FOUND")
-                && viralLoaderResult.getViralLoadStatus().equals(ViralLoadStatus.PROCESSED.name()) ? "Reprocessado apos a correcao do NID" : " ");
+                && viralLoaderResult.getViralLoadStatus().equals(ViralLoadStatus.PROCESSED.name())
+                        ? "Reprocessado apos a correcao do NID"
+                        : " ");
     }
 
-    private static void createPendingViralResultSummaryRow(Row row, PendingHealthFacilitySummary pendingViralResultSummary) {
+    private static void createPendingViralResultSummaryRow(Row row,
+            PendingHealthFacilitySummary pendingViralResultSummary) {
         row.createCell(COL0_DISTRICT).setCellValue(pendingViralResultSummary.getRequestingDistrictName());
         row.createCell(COL1_HEALTH_FACILITY_CODE).setCellValue(pendingViralResultSummary.getHealthFacilityLabCode());
         row.createCell(COL2_HEALTH_FACILITY_NAME).setCellValue(pendingViralResultSummary.getFacilityName());
         row.createCell(COL3_TOTAL_PENDING).setCellValue(pendingViralResultSummary.getTotalPending());
-        row.createCell(COL4_LAST_SYNC_DATE).setCellValue(pendingViralResultSummary.getLastSyncDate() != null ? pendingViralResultSummary.getLastSyncDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) : "");
+        row.createCell(COL4_LAST_SYNC_DATE)
+                .setCellValue(pendingViralResultSummary.getLastSyncDate() != null ? pendingViralResultSummary
+                        .getLastSyncDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) : "");
     }
 
     private static void createUnsyncronizedViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
@@ -381,114 +436,153 @@ public class FileUtils implements XLSColumnConstants {
         row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
         row.createCell(COL3_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
         row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
-        row.createCell(COL5_SENT_DATE).setCellValue(viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        row.createCell(COL5_SENT_DATE).setCellValue(
+                viralLoaderResult.getCreatedAt().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         row.createCell(COL6_STATUS).setCellValue((viralLoaderResult.getViralLoadStatus()));
     }
 
-    private static void createStatResultRow(Workbook workbook, Row row, String district, ViralResultStatistics viralResultStatistics) {
+    private static void createStatResultRow(Workbook workbook, Row row, String district,
+            ViralResultStatistics viralResultStatistics) {
 
-        row.createCell(STAT0_DISTRICT).setCellValue(district);
-        row.createCell(STAT1_TOTAL_PROCESSED).setCellValue(viralResultStatistics.getProcessed());
-
-        Cell processedPercent = row.createCell(STAT2_PERCENTAGE_PROCESSED);
-        processedPercent.setCellStyle(getPercentCellStyle(workbook));
-        processedPercent.setCellValue(viralResultStatistics.getProcessedPercentage());
-
-        row.createCell(STAT3_TOTAL_PENDING).setCellValue(viralResultStatistics.getPending());
-
-        Cell pendingPercent = row.createCell(STAT4_PERCENTAGE_PENDING);
-        pendingPercent.setCellStyle(getPercentCellStyle(workbook));
-        pendingPercent.setCellValue(viralResultStatistics.getPendingPercentage());
-
-        row.createCell(STAT5_NOT_PROCESSED_NO_RESULT).setCellValue(viralResultStatistics.getNoProcessedNoResult());
-
-        Cell noResultPercent = row.createCell(STAT6_PERCENTAGE_NOT_PROCESSED_NO_RESULT);
-        noResultPercent.setCellStyle(getPercentCellStyle(workbook));
-        noResultPercent.setCellValue(viralResultStatistics.getNoProcessedNoResultPercentage());
-
-        row.createCell(STAT7_NOT_PROCESSED_NID_NOT_FOUND)
-                .setCellValue(viralResultStatistics.getNoProcessedNidNotFound());
-
-        Cell notFoundPercent = row.createCell(STAT8_PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND);
-        notFoundPercent.setCellStyle(getPercentCellStyle(workbook));
-        notFoundPercent.setCellValue(viralResultStatistics.getNoProcessedNidNotFoundPercentage());
-
-        row.createCell(STAT9_NOT_PROCESSED_DUPLICATED_NID)
-                .setCellValue(viralResultStatistics.getNotProcessedDuplicateNid());
-
-        Cell duplicatedNidPercent = row.createCell(STAT10_PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID);
-        duplicatedNidPercent.setCellStyle(getPercentCellStyle(workbook));
-        duplicatedNidPercent.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
-
-        row.createCell(STAT11_NOT_PROCESSED_FLAGGED_FOR_REVIEW)
-                .setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
-
-        Cell flaggedPercent = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
-        flaggedPercent.setCellStyle(getPercentCellStyle(workbook));
-        flaggedPercent.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
-
-        row.createCell(STAT13_TOTAL_RECEIVED).setCellValue(viralResultStatistics.getTotal());
+        for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
+            Cell cell = row.createCell(r.ordinal());
+            switch (r) {
+                case DISTRICT:
+                    cell.setCellValue(district);
+                    break;
+                case TOTAL_PROCESSED:
+                    cell.setCellValue(viralResultStatistics.getProcessed());
+                    break;
+                case PERCENTAGE_PROCESSED:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getProcessedPercentage());
+                    break;
+                case TOTAL_PENDING:
+                    cell.setCellValue(viralResultStatistics.getPending());
+                    break;
+                case PERCENTAGE_PENDING:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getPendingPercentage());
+                    break;
+                case NOT_PROCESSED_NO_RESULT:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNoResult());
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_NO_RESULT:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNoResultPercentage());
+                    break;
+                case NOT_PROCESSED_NID_NOT_FOUND:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNidNotFound());
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNidNotFoundPercentage());
+                    break;
+                case NOT_PROCESSED_DUPLICATED_NID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicateNid());
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
+                    break;
+                case NOT_PROCESSED_DUPLICATED_REQUEST_ID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqId());
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqIdPercentage());
+                    break;
+                case NOT_PROCESSED_FLAGGED_FOR_REVIEW:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW:
+                    cell.setCellStyle(getPercentCellStyle(workbook));
+                    cell.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
+                    break;
+                case TOTAL_RECEIVED:
+                    cell.setCellValue(viralResultStatistics.getTotal());
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private static void createStatLastResultRow(Workbook workbook, Row row,
             String district,
             ViralResultStatistics viralResultStatistics) {
 
-        Cell cell0 = row.createCell(STAT0_DISTRICT);
-        cell0.setCellValue(district);
-        cell0.setCellStyle(getTotalsCellStyle(workbook));
-
-        Cell cell1 = row.createCell(STAT1_TOTAL_PROCESSED);
-        cell1.setCellValue(viralResultStatistics.getProcessed());
-        cell1.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell2 = row.createCell(STAT2_PERCENTAGE_PROCESSED);
-        cell2.setCellValue(viralResultStatistics.getProcessedPercentage());
-        cell2.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cell3 = row.createCell(STAT3_TOTAL_PENDING);
-        cell3.setCellValue(viralResultStatistics.getPending());
-        cell3.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell4 = row.createCell(STAT4_PERCENTAGE_PENDING);
-        cell4.setCellValue(viralResultStatistics.getPendingPercentage());
-        cell4.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cell5 = row.createCell(STAT5_NOT_PROCESSED_NO_RESULT);
-        cell5.setCellValue(viralResultStatistics.getNoProcessedNoResult());
-        cell5.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell6 = row.createCell(STAT6_PERCENTAGE_NOT_PROCESSED_NO_RESULT);
-        cell6.setCellValue(viralResultStatistics.getNoProcessedNoResultPercentage());
-        cell6.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cell7 = row.createCell(STAT7_NOT_PROCESSED_NID_NOT_FOUND);
-        cell7.setCellValue(viralResultStatistics.getNoProcessedNidNotFound());
-        cell7.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell8 = row.createCell(STAT8_PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND);
-        cell8.setCellValue(viralResultStatistics.getNoProcessedNidNotFoundPercentage());
-        cell8.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cell9 = row.createCell(STAT9_NOT_PROCESSED_DUPLICATED_NID);
-        cell9.setCellValue(viralResultStatistics.getNotProcessedDuplicateNid());
-        cell9.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell10 = row.createCell(STAT10_PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID);
-        cell10.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
-        cell10.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cell11 = row.createCell(STAT11_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
-        cell11.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
-        cell11.setCellStyle(getBoldStyle(workbook));
-
-        Cell cell12 = row.createCell(STAT12_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW);
-        cell12.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
-        cell12.setCellStyle(getBoldPercentCellStyle(workbook));
-
-        Cell cel13 = row.createCell(STAT13_TOTAL_RECEIVED);
-        cel13.setCellValue(viralResultStatistics.getTotal());
-        cel13.setCellStyle(getBoldStyle(workbook));
+        for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
+            Cell cell = row.createCell(r.ordinal());
+            switch (r) {
+                case DISTRICT:
+                    cell.setCellValue(district);
+                    cell.setCellStyle(getTotalsCellStyle(workbook));
+                    break;
+                case TOTAL_PROCESSED:
+                    cell.setCellValue(viralResultStatistics.getProcessed());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_PROCESSED:
+                    cell.setCellValue(viralResultStatistics.getProcessedPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case TOTAL_PENDING:
+                    cell.setCellValue(viralResultStatistics.getPending());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_PENDING:
+                    cell.setCellValue(viralResultStatistics.getPendingPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case NOT_PROCESSED_NO_RESULT:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNoResult());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_NO_RESULT:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNoResultPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case NOT_PROCESSED_NID_NOT_FOUND:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNidNotFound());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND:
+                    cell.setCellValue(viralResultStatistics.getNoProcessedNidNotFoundPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case NOT_PROCESSED_DUPLICATED_NID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicateNid());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicateNidPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case NOT_PROCESSED_DUPLICATED_REQUEST_ID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqId());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedDuplicatedReqIdPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case NOT_PROCESSED_FLAGGED_FOR_REVIEW:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReview());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                case PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW:
+                    cell.setCellValue(viralResultStatistics.getNotProcessedFlaggedForReviewPercentage());
+                    cell.setCellStyle(getBoldPercentCellStyle(workbook));
+                    break;
+                case TOTAL_RECEIVED:
+                    cell.setCellValue(viralResultStatistics.getTotal());
+                    cell.setCellStyle(getBoldStyle(workbook));
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private static CellStyle getTotalsCellStyle(Workbook workbook) {

@@ -19,6 +19,7 @@ public class ViralResultStatistics {
     private int noProcessedNidNotFound;
     private int notProcessedDuplicateNid;
     private int notProcessedFlaggedForReview;
+    private int notProcessedDuplicatedReqId;
 
     public void accumulate(ViralLoaderResultSummary summary) {
         total += summary.getTotalReceived();
@@ -28,6 +29,7 @@ public class ViralResultStatistics {
         noProcessedNidNotFound += summary.getNotProcessedNidNotFount();
         notProcessedDuplicateNid += summary.getNotProcessedDuplicateNid();
         notProcessedFlaggedForReview += summary.getNotProcessedFlaggedForReview();
+        notProcessedDuplicatedReqId += summary.getNotProcessedDuplicatedRequestId();
     }
 
     public void accumulate(ViralResultStatistics stats) {
@@ -38,6 +40,7 @@ public class ViralResultStatistics {
         noProcessedNidNotFound += stats.getNoProcessedNidNotFound();
         notProcessedDuplicateNid += stats.getNotProcessedDuplicateNid();
         notProcessedFlaggedForReview += stats.getNotProcessedFlaggedForReview();
+        notProcessedDuplicatedReqId += stats.getNotProcessedDuplicatedReqId();
     }
 
     public ViralResultStatistics combine(ViralResultStatistics other) {
@@ -46,26 +49,30 @@ public class ViralResultStatistics {
     }
 
     public double getProcessedPercentage() {
-        return (double) processed / total;
+        return total == 0 ? 0.0 : (double) processed / total;
     }
 
     public double getPendingPercentage() {
-        return (double) pending / total;
+        return total == 0 ? 0.0 : (double) pending / total;
     }
 
     public double getNoProcessedNoResultPercentage() {
-        return (double) noProcessedNoResult / total;
+        return total == 0 ? 0.0 : (double) noProcessedNoResult / total;
     }
 
     public double getNoProcessedNidNotFoundPercentage() {
-        return (double) noProcessedNidNotFound / total;
+        return total == 0 ? 0.0 : (double) noProcessedNidNotFound / total;
     }
 
     public double getNotProcessedDuplicateNidPercentage() {
-        return (double) notProcessedDuplicateNid / total;
+        return total == 0 ? 0.0 : (double) notProcessedDuplicateNid / total;
     }
 
     public double getNotProcessedFlaggedForReviewPercentage() {
-        return (double) notProcessedFlaggedForReview / total;
+        return total == 0 ? 0.0 : (double) notProcessedFlaggedForReview / total;
+    }
+
+    public double getNotProcessedDuplicatedReqIdPercentage() {
+        return total == 0 ? 0.0 : (double) notProcessedDuplicatedReqId / total;
     }
 }
