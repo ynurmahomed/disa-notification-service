@@ -48,31 +48,31 @@ public class FileUtils implements XLSColumnConstants {
 
     static {
         dictionaries[0][0] = "Total Recebidos";
-        dictionaries[0][1] = "Número total de resultados de Carga Viral (CV) criados no integration  server";
+        dictionaries[0][1] = "Número total de resultados de Carga Viral (CV) criados no Servidor de Integração";
         dictionaries[1][0] = "No. Processados";
-        dictionaries[1][1] = "Número de resultados de CV criados no integration  server que foram processados (NID identificado e FSR criado no SESP)";
+        dictionaries[1][1] = "Número de resultados de CV criados no Servidor de Integração que foram processados (NID identificado e FSR criado no SESP)";
         dictionaries[2][0] = "Não Processados: No. Sem Resultados";
-        dictionaries[2][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor.";
+        dictionaries[2][1] = "Número de resultados de CV criados no Servidor de Integração que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor.";
         dictionaries[3][0] = "Não Processados: No. NID não encontrado";
-        dictionaries[3][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
+        dictionaries[3][1] = "Número de resultados de CV criados no Servidor de Integração que não foram processados (não tem FSR criado no SESP) porque o NID do paciente não foi encontrado no SESP.";
         dictionaries[4][0] = "Não Processados: No. NID duplicado";
-        dictionaries[4][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o NID do paciente está duplicado no SESP.";
+        dictionaries[4][1] = "Número de resultados de CV criados no Servidor de Integração que não foram processados (não tem FSR criado no SESP) porque o NID do paciente está duplicado no SESP.";
         dictionaries[5][0] = "Não Processados: No. ID da requisição duplicado";
         dictionaries[5][1] = "Número de resultados de CV criados no servidor de integração que não foram processados (não tem FSR criado no SESP) porque há um processo com o mesmo código de requisição que já foi processado com sucesso anteriormente.";
         dictionaries[6][0] = "Não Processados: Sinalizado para revisão";
-        dictionaries[6][1] = "Número de resultados de CV criados no integration  server que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
+        dictionaries[6][1] = "Número de resultados de CV criados no Servidor de Integração que não foram processados (não tem FSR criado no SESP) porque o resultado não tem valor valido.";
         dictionaries[7][0] = "No. Pendentes";
-        dictionaries[7][1] = "Número de resultados de CV criados no integration  server que ainda não foram sincronizados com SESP";
+        dictionaries[7][1] = "Número de resultados de CV criados no Servidor de Integração que ainda não foram sincronizados com SESP";
         dictionaries[8][0] = "Data de Entrada";
-        dictionaries[8][1] = "Data que o resultado de CV foi criado no integration  server";
+        dictionaries[8][1] = "Data que o resultado de CV foi criado no Servidor de Integração";
         dictionaries[9][0] = "Data de Sincronização";
-        dictionaries[9][1] = "Data que o integration  server sincronizou os resultados de CV com SESP";
+        dictionaries[9][1] = "Data que o Servidor de Integração sincronizou os resultados de CV com SESP";
         dictionaries[10][0] = "Estado";
-        dictionaries[10][1] = "O estado actual do resultado de CV no integration  server, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
+        dictionaries[10][1] = "O estado actual do resultado de CV no Servidor de Integração, incluindo: Processado (FSR criado em SESP); Não Processado (sem FSR criado no SESP) ou Pendentes (ainda não foi sincronizado com SESP).";
         dictionaries[11][0] = "Motivo não envio";
         dictionaries[11][1] = "Se estado for Não Processado, o motivo pode ser NID não encontrado, NID duplicado, ID de requisição duplicado, Sinalizado para revisão, Sem Resultados.";
         dictionaries[12][0] = "Data da última sincronização ";
-        dictionaries[12][1] = "Data da última sincronização feita entre o integration  server e SESP na US";
+        dictionaries[12][1] = "Data da última sincronização feita entre o Servidor de Integração e SESP na US";
     }
 
     private static void composeDictionarySheet(Workbook workbook) {

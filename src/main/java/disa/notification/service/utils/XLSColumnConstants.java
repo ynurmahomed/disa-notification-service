@@ -6,7 +6,7 @@ public interface XLSColumnConstants {
     int SECOND_ROW = 1;
     int THIRD_ROW = 2;
     String[] VIRAL_RESULTS_HEADER = { "REQUEST_ID", "NID", "Distrito", "Codigo da US", "Nome da US",
-            "Data de Entrada", "Data de Sincronizacao", "Estado", "Motivo de Não envio", "Observacoes" };
+            "Data de Entrada", "Data de Sincronização", "Estado", "Motivo de Não envio", "Observacoes" };
     int COL0_REQUEST_ID = 0;
     int COL1_NID = 1;
     int COL2_DISTRICT = 2;
