@@ -7,9 +7,8 @@ public interface ViralLoaderResultSummary {
     int getTotalReceived();
     int getTotalPending();
     int getProcessed();
-    int getNotProcessedNoResult();
+    int getNotProcessedInvalidResult();
     int getNotProcessedNidNotFount();
     int getNotProcessedDuplicateNid();
-    int getNotProcessedFlaggedForReview();
     int getNotProcessedDuplicatedRequestId();
 }

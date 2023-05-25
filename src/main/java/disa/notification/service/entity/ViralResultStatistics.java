@@ -15,20 +15,18 @@ public class ViralResultStatistics {
     private int total;
     private int processed;
     private int pending;
-    private int noProcessedNoResult;
+    private int noProcessedInvalidResult;
     private int noProcessedNidNotFound;
     private int notProcessedDuplicateNid;
-    private int notProcessedFlaggedForReview;
     private int notProcessedDuplicatedReqId;
 
     public void accumulate(ViralLoaderResultSummary summary) {
         total += summary.getTotalReceived();
         processed += summary.getProcessed();
         pending += summary.getTotalPending();
-        noProcessedNoResult += summary.getNotProcessedNoResult();
+        noProcessedInvalidResult += summary.getNotProcessedInvalidResult();
         noProcessedNidNotFound += summary.getNotProcessedNidNotFount();
         notProcessedDuplicateNid += summary.getNotProcessedDuplicateNid();
-        notProcessedFlaggedForReview += summary.getNotProcessedFlaggedForReview();
         notProcessedDuplicatedReqId += summary.getNotProcessedDuplicatedRequestId();
     }
 
@@ -36,10 +34,9 @@ public class ViralResultStatistics {
         total += stats.getTotal();
         processed += stats.getProcessed();
         pending += stats.getPending();
-        noProcessedNoResult += stats.getNoProcessedNoResult();
+        noProcessedInvalidResult += stats.getNoProcessedInvalidResult();
         noProcessedNidNotFound += stats.getNoProcessedNidNotFound();
         notProcessedDuplicateNid += stats.getNotProcessedDuplicateNid();
-        notProcessedFlaggedForReview += stats.getNotProcessedFlaggedForReview();
         notProcessedDuplicatedReqId += stats.getNotProcessedDuplicatedReqId();
     }
 
@@ -57,7 +54,7 @@ public class ViralResultStatistics {
     }
 
     public double getNoProcessedNoResultPercentage() {
-        return total == 0 ? 0.0 : (double) noProcessedNoResult / total;
+        return total == 0 ? 0.0 : (double) noProcessedInvalidResult / total;
     }
 
     public double getNoProcessedNidNotFoundPercentage() {
@@ -66,10 +63,6 @@ public class ViralResultStatistics {
 
     public double getNotProcessedDuplicateNidPercentage() {
         return total == 0 ? 0.0 : (double) notProcessedDuplicateNid / total;
-    }
-
-    public double getNotProcessedFlaggedForReviewPercentage() {
-        return total == 0 ? 0.0 : (double) notProcessedFlaggedForReview / total;
     }
 
     public double getNotProcessedDuplicatedReqIdPercentage() {

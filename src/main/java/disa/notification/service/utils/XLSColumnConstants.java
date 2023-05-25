@@ -5,8 +5,6 @@ public interface XLSColumnConstants {
     int FIRST_COL = 0;
     int SECOND_ROW = 1;
     int THIRD_ROW = 2;
-    String[] VIRAL_RESULTS_HEADER = { "REQUEST_ID", "NID", "Distrito", "Codigo da US", "Nome da US",
-            "Data de Entrada", "Data de Sincronização", "Estado", "Motivo de Não envio", "Observacoes" };
     int COL0_REQUEST_ID = 0;
     int COL1_NID = 1;
     int COL2_DISTRICT = 2;
@@ -19,19 +17,41 @@ public interface XLSColumnConstants {
 
     int COL9_VIRAL_RESULT_STATUS_CAUSE = 9;
 
+    enum ResultsReceivedByNid {
+        REQUEST_ID("ID da Requisição"),
+        TYPE_OF_RESULT("Tipo de Resultado"),
+        NID("NID"),
+        DISTRICT("Distrito"),
+        HEALTH_FACILITY_CODE("Codigo da US"),
+        HEALTH_FACILITY_NAME("Nome da US"),
+        CREATED_AT("Data de Entrada"),
+        UPDATED_AT("Data de Sincronização"),
+        VIRAL_RESULT_STATUS("Estado"),
+        VIRAL_RESULT_STATUS_CAUSE("Motivo de Não envio"),
+        OBS("Observacoes");
+        private final String header;
+
+        ResultsReceivedByNid(String header) {
+            this.header = header;
+        }
+
+        public String header() {
+            return header;
+        }
+    }
+
     enum ResultsByHFSummary {
         DISTRICT("Distrito"),
         HEALTH_FACILITY_CODE("Código da US"),
         HEALTH_FACILITY_NAME("Nome da US"),
+        TYPE_OF_RESULT("Tipo de Resultado"),
         TOTAL_RECEIVED("Total Recebidos"),
         TOTAL_PROCESSED("No. Processados "),
         TOTAL_PENDING("No. Pendentes"),
-        NOT_PROCESSED_NO_RESULT("No. Sem Resultados"),
+        NOT_PROCESSED_INVALID_RESULT("No. Resultado inválido"),
         NOT_PROCESSED_NID_NOT_FOUND("No. NID nao encontrado"),
         NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
-        NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado"),
-        NOT_PROCESSED_FLAGGED_FOR_REVIEW("No. Sinalizado para Revisão");
-
+        NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado");
         private final String header;
 
         ResultsByHFSummary(String header) {
@@ -55,7 +75,7 @@ public interface XLSColumnConstants {
     int COL9_NOT_PROCESSED_DUPLICATED_REQUEST_ID=9;
     int COL10_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 10;
 
-    String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = { "REQUEST_ID", "NID", "Distrito", "Codigo da US", "Nome da US",
+    String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = { "ID da Requisição", "NID", "Distrito", "Codigo da US", "Nome da US",
             "Data de Envio", "Estado" };
     int COL5_SENT_DATE = 5;
     int COL6_STATUS = 6;
@@ -76,20 +96,19 @@ public interface XLSColumnConstants {
 
     enum ResultsByDistrictSummary {
         DISTRICT("Distrito"),
+        TYPE_OF_RESULT("Tipo de Resultado"),
         TOTAL_PROCESSED("No. Processados "),
         PERCENTAGE_PROCESSED("% Processados "),
         TOTAL_PENDING("No. Pendentes"),
         PERCENTAGE_PENDING("% Pendentes "),
-        NOT_PROCESSED_NO_RESULT("No. Sem Resultados"),
-        PERCENTAGE_NOT_PROCESSED_NO_RESULT("% Sem Resultados "),
+        NOT_PROCESSED_INVALID_RESULT("No. Resultado inválido"),
+        PERCENTAGE_NOT_PROCESSED_INVALID_RESULT("% Resultado inválido"),
         NOT_PROCESSED_NID_NOT_FOUND("No. NID não encontrado"),
         PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND("% NID não encontrado"),
         NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
         PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID ("% NID duplicado"),
         NOT_PROCESSED_DUPLICATED_REQUEST_ID ("No. ID da requisição duplicado"),
         PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID ("% ID da requisição duplicado"),
-        NOT_PROCESSED_FLAGGED_FOR_REVIEW ("No. Sinalizado para Revisão"),
-        PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW ("% Sinalizado para Revisão"),
         TOTAL_RECEIVED ("Total Recebidos");
 
         private final String header;
