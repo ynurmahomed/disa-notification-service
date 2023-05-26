@@ -30,3 +30,13 @@ Run `mvn clean install`
     ```bash
     source 'filename.env' && java -jar notification-service.jar
     ```
+
+## Generating reports on disk
+FileSystemMailService is an implementation of MailService that allows generating the reports without
+sending to recipients.
+It is configured by setting the property `app.mailservice` to `fileSystem`, either on
+application.properties or by supplying a param to the excutable jar:
+
+   ```bash
+    java -jar notification-service.jar --app.mailservice=fileSystem
+    ```

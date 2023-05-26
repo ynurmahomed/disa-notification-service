@@ -1,6 +1,10 @@
 package disa.notification.service.config;
 
-import lombok.Setter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Properties;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
@@ -15,9 +19,10 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Properties;
+import disa.notification.service.service.impl.FileSystemMailService;
+import disa.notification.service.service.impl.MailServiceImpl;
+import disa.notification.service.service.interfaces.MailService;
+import lombok.Setter;
 
 @Configuration
 @Setter
@@ -50,6 +55,7 @@ public class MailSenderConfig implements ApplicationContextAware, EnvironmentAwa
         templateEngine.addTemplateResolver(htmlTemplateResolver());
         return templateEngine;
     }
+
     private ITemplateResolver htmlTemplateResolver() {
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setOrder(Integer.valueOf(2));
@@ -60,5 +66,17 @@ public class MailSenderConfig implements ApplicationContextAware, EnvironmentAwa
         templateResolver.setCharacterEncoding("spring.mail.encoding");
         templateResolver.setCacheable(false);
         return templateResolver;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "app.mailservice", havingValue = "javaMail")
+    public MailService mailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
+        return new MailServiceImpl(mailSender, templateEngine);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "app.mailservice", havingValue = "fileSystem")
+    MailService fileSystemMailService() {
+        return new FileSystemMailService();
     }
 }

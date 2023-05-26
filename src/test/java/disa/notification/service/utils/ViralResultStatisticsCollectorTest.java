@@ -22,7 +22,7 @@ public class ViralResultStatisticsCollectorTest {
                 .totalReceived(100)
                 .processed(50)
                 .totalPending(30)
-                .notProcessedNoResult(15)
+                .notProcessedInvalidResult(15)
                 .notProcessedNidNotFount(5)
                 .build();
 
@@ -39,7 +39,7 @@ public class ViralResultStatisticsCollectorTest {
         assertThat(statistics.getTotal()).isEqualTo(100);
         assertThat(statistics.getProcessed()).isEqualTo(50);
         assertThat(statistics.getPending()).isEqualTo(30);
-        assertThat(statistics.getNoProcessedNoResult()).isEqualTo(15);
+        assertThat(statistics.getNoProcessedInvalidResult()).isEqualTo(15);
         assertThat(statistics.getNoProcessedNidNotFound()).isEqualTo(5);
     }
 
@@ -53,7 +53,7 @@ public class ViralResultStatisticsCollectorTest {
                 .total(100)
                 .processed(50)
                 .pending(30)
-                .noProcessedNoResult(15)
+                .noProcessedInvalidResult(15)
                 .noProcessedNidNotFound(5)
                 .build();
 
@@ -61,7 +61,7 @@ public class ViralResultStatisticsCollectorTest {
                 .total(50)
                 .processed(20)
                 .pending(10)
-                .noProcessedNoResult(5)
+                .noProcessedInvalidResult(5)
                 .noProcessedNidNotFound(2)
                 .build();
 
@@ -76,7 +76,7 @@ public class ViralResultStatisticsCollectorTest {
         assertThat(combined.getTotal()).isEqualTo(150);
         assertThat(combined.getProcessed()).isEqualTo(70);
         assertThat(combined.getPending()).isEqualTo(40);
-        assertThat(combined.getNoProcessedNoResult()).isEqualTo(20);
+        assertThat(combined.getNoProcessedInvalidResult()).isEqualTo(20);
         assertThat(combined.getNoProcessedNidNotFound()).isEqualTo(7);
 
     }
