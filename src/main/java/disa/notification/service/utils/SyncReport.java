@@ -22,21 +22,25 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.context.MessageSource;
 
 import disa.notification.service.entity.ViralResultStatistics;
 import disa.notification.service.enums.ViralLoadStatus;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
 import disa.notification.service.service.interfaces.ViralLoaderResults;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class FileUtils implements XLSColumnConstants {
+public class SyncReport implements XLSColumnConstants {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private static Map<String, String> dictionaries;
-    static {
+
+    private MessageSource messageSource;
+
+    private Map<String, String> dictionaries;
+
+    public SyncReport(MessageSource messageSource) {
+        this.messageSource = messageSource;
+
         Map<String, String> d = new LinkedHashMap<>(12);
         d.put("Total Recebidos", "Número total de resultados laboratoriais criados no servidor de integração");
         d.put("No. Processados",
@@ -63,7 +67,23 @@ public class FileUtils implements XLSColumnConstants {
         dictionaries = Collections.unmodifiableMap(d);
     }
 
-    private static CellStyle fullBorderThin(Workbook wb) {
+    public byte[] getViralResultXLS(
+            List<ViralLoaderResultSummary> viralLoaderResultSummary, List<ViralLoaderResults> viralLoadResults,
+            List<ViralLoaderResults> unsyncronizedViralLoadResults,
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
+            composeDictionarySheet(workbook);
+            composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
+            composeReceivedByUSSheet(viralLoaderResultSummary, workbook);
+            composeReceivedByNIDSheet(viralLoadResults, workbook);
+            composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
+            composePendingByUSSheet(pendingHealthFacilitySummaries, workbook);
+            workbook.write(stream);
+            return stream.toByteArray();
+        }
+    }
+
+    private CellStyle fullBorderThin(Workbook wb) {
         CellStyle style = wb.createCellStyle();
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
@@ -72,7 +92,7 @@ public class FileUtils implements XLSColumnConstants {
         return style;
     }
 
-    private static void composeDictionarySheet(Workbook workbook) {
+    private void composeDictionarySheet(Workbook workbook) {
         Sheet sheet = workbook.createSheet("Dicionário");
 
         CellStyle dictionaryHeaderStyle = dictionaryHeaderStyle(workbook);
@@ -99,23 +119,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet.autoSizeColumn(1);
     }
 
-    public static byte[] getViralResultXLS(
-            List<ViralLoaderResultSummary> viralLoaderResultSummary, List<ViralLoaderResults> viralLoadResults,
-            List<ViralLoaderResults> unsyncronizedViralLoadResults,
-            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
-            composeDictionarySheet(workbook);
-            composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
-            composeReceivedByUSSheet(viralLoaderResultSummary, workbook);
-            composeReceivedByNIDSheet(viralLoadResults, workbook);
-            composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
-            composePendingByUSSheet(pendingHealthFacilitySummaries, workbook);
-            workbook.write(stream);
-            return stream.toByteArray();
-        }
-    }
-
-    public static void composeReceivedByDistrictSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList,
+    public void composeReceivedByDistrictSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList,
             Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
@@ -174,7 +178,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(15);
     }
 
-    private static void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
+    private void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
             Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Pendentes por US");
         createFirstRow(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY, 4);
@@ -192,17 +196,16 @@ public class FileUtils implements XLSColumnConstants {
         sheet4.autoSizeColumn(4);
     }
 
-    private static void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults,
+    private void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults,
             Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("Pendentes por NID");
         createFirstRow(workbook, sheet3, NOT_SYNCRONIZED_VIRAL_RESULTS, 7);
         createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
-        AtomicInteger counter3 = new AtomicInteger(2);
-        unsyncronizedViralLoadResults.stream()
-                .forEach(viralResult -> {
-                    Row row = sheet3.createRow(counter3.getAndIncrement());
-                    createUnsyncronizedViralResultRow(row, viralResult);
-                });
+        int counter3 = 2;
+        for (ViralLoaderResults viralResult : unsyncronizedViralLoadResults) {
+            Row row = sheet3.createRow(counter3++);
+            createUnsyncronizedViralResultRow(row, viralResult);
+        }
         sheet3.autoSizeColumn(0);
         sheet3.autoSizeColumn(1);
         sheet3.autoSizeColumn(2);
@@ -213,7 +216,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet3.autoSizeColumn(7);
     }
 
-    private static void composeReceivedByNIDSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
+    private void composeReceivedByNIDSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().format(DATE_FORMAT);
         String endDateFormatted = lastWeekInterval.getEndDateTime().format(DATE_FORMAT);
@@ -227,23 +230,16 @@ public class FileUtils implements XLSColumnConstants {
             cell.setCellValue(r.header());
             cell.setCellStyle(headerCellStyle);
         }
-        AtomicInteger rowNum = new AtomicInteger(2);
+        int rowNum = 2;
         for (ViralLoaderResults viralResult : viralLoadResults) {
-            Row row = sheet2.createRow(rowNum.getAndIncrement());
-            createReceivedByNIDRow(row, viralResult);
+            createReceivedByNIDRow(sheet2.createRow(rowNum++), viralResult);
         }
-        sheet2.autoSizeColumn(0);
-        sheet2.autoSizeColumn(1);
-        sheet2.autoSizeColumn(2);
-        sheet2.autoSizeColumn(3);
-        sheet2.autoSizeColumn(4);
-        sheet2.autoSizeColumn(5);
-        sheet2.autoSizeColumn(6);
-        sheet2.autoSizeColumn(7);
-        sheet2.autoSizeColumn(8);
+        for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
+            sheet2.autoSizeColumn(r.ordinal());
+        }
     }
 
-    private static void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary,
+    private void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary,
             Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
@@ -273,7 +269,7 @@ public class FileUtils implements XLSColumnConstants {
         sheet.autoSizeColumn(10);
     }
 
-    private static void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
+    private void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
         Row headerRow = sheet.createRow(FIRST_ROW);
         CellStyle headerCellStyle = setHeaderCellStyle(workbook);
         Cell cell = headerRow.createCell(0);
@@ -282,7 +278,7 @@ public class FileUtils implements XLSColumnConstants {
         cell.setCellStyle(headerCellStyle);
     }
 
-    private static void createSummaryRowHeader(Workbook workbook, Sheet sheet) {
+    private void createSummaryRowHeader(Workbook workbook, Sheet sheet) {
         CellStyle headerCellStyle = setHeaderCellStyle(workbook);
         Row headerRow2 = sheet.createRow(SECOND_ROW);
         Cell cell2 = headerRow2.createCell(6);
@@ -300,7 +296,7 @@ public class FileUtils implements XLSColumnConstants {
 
     }
 
-    private static void createRowHeader(Workbook workbook, Sheet sheet, String[] columnHeaders) {
+    private void createRowHeader(Workbook workbook, Sheet sheet, String[] columnHeaders) {
         Row headerRow = sheet.createRow(SECOND_ROW);
         CellStyle headerCellStyle = setHeaderCellStyle(workbook);
         for (int col = 0; col < columnHeaders.length; col++) {
@@ -310,7 +306,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    private static CellStyle getBoldStyle(Workbook workbook) {
+    private CellStyle getBoldStyle(Workbook workbook) {
         CellStyle headerStyle = workbook.createCellStyle();
         XSSFFont font = ((XSSFWorkbook) workbook).createFont();
         font.setBold(true);
@@ -318,7 +314,7 @@ public class FileUtils implements XLSColumnConstants {
         return headerStyle;
     }
 
-    private static CellStyle dictionaryHeaderStyle(Workbook wb) {
+    private CellStyle dictionaryHeaderStyle(Workbook wb) {
         CellStyle style = wb.createCellStyle();
         XSSFFont font = ((XSSFWorkbook) wb).createFont();
         font.setBold(true);
@@ -331,7 +327,7 @@ public class FileUtils implements XLSColumnConstants {
         return style;
     }
 
-    private static CellStyle setHeaderCellStyle(Workbook workbook) {
+    private CellStyle setHeaderCellStyle(Workbook workbook) {
         CellStyle headerStyle = workbook.createCellStyle();
         XSSFFont font = ((XSSFWorkbook) workbook).createFont();
         font.setBold(true);
@@ -340,14 +336,14 @@ public class FileUtils implements XLSColumnConstants {
         return headerStyle;
     }
 
-    private static CellStyle getPercentCellStyle(Workbook workbook) {
+    private CellStyle getPercentCellStyle(Workbook workbook) {
         CellStyle percent = workbook.createCellStyle();
         DataFormat df = workbook.createDataFormat();
         percent.setDataFormat(df.getFormat("0%"));
         return percent;
     }
 
-    private static CellStyle getBoldPercentCellStyle(Workbook workbook) {
+    private CellStyle getBoldPercentCellStyle(Workbook workbook) {
         CellStyle boldPercent = workbook.createCellStyle();
         DataFormat df = workbook.createDataFormat();
         boldPercent.cloneStyleFrom(getBoldStyle(workbook));
@@ -355,7 +351,7 @@ public class FileUtils implements XLSColumnConstants {
         return boldPercent;
     }
 
-    private static void createViralResultSummaryRow(Row row, ViralLoaderResultSummary viralLoaderResult) {
+    private void createViralResultSummaryRow(Row row, ViralLoaderResultSummary viralLoaderResult) {
         for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
             Cell cell = row.createCell(byHfSummary.ordinal());
             switch (byHfSummary) {
@@ -398,7 +394,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    private static void createReceivedByNIDRow(Row row, ViralLoaderResults viralLoaderResult) {
+    private void createReceivedByNIDRow(Row row, ViralLoaderResults viralLoaderResult) {
 
         for (ResultsReceivedByNid byNID : ResultsReceivedByNid.values()) {
             Cell cell = row.createCell(byNID.ordinal());
@@ -432,10 +428,18 @@ public class FileUtils implements XLSColumnConstants {
                             : "");
                     break;
                 case VIRAL_RESULT_STATUS:
-                    cell.setCellValue(viralLoaderResult.getViralLoadStatus());
+                    cell.setCellValue(
+                            messageSource.getMessage("disa.viraLoadStatus." + viralLoaderResult.getViralLoadStatus(),
+                                    new String[] {}, null));
                     break;
-                case VIRAL_RESULT_STATUS_CAUSE:
-                    cell.setCellValue(viralLoaderResult.getNotProcessingCause());
+                case NOT_PROCESSING_CAUSE:
+                    String cellValue = "";
+                    if (viralLoaderResult.getNotProcessingCause() != null) {
+                        cellValue = messageSource.getMessage(
+                                "disa.notProcessingCause." + viralLoaderResult.getNotProcessingCause(), new String[] {},
+                                null);
+                    }
+                    cell.setCellValue(cellValue);
                     break;
                 case OBS:
                     cell.setCellValue(viralLoaderResult.getNotProcessingCause() != null
@@ -451,7 +455,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    private static void createPendingViralResultSummaryRow(Row row,
+    private void createPendingViralResultSummaryRow(Row row,
             PendingHealthFacilitySummary pendingViralResultSummary) {
         row.createCell(COL0_DISTRICT).setCellValue(pendingViralResultSummary.getRequestingDistrictName());
         row.createCell(COL1_HEALTH_FACILITY_CODE).setCellValue(pendingViralResultSummary.getHealthFacilityLabCode());
@@ -462,7 +466,7 @@ public class FileUtils implements XLSColumnConstants {
                         .getLastSyncDate().toLocalDate().format(DATE_FORMAT) : "");
     }
 
-    private static void createUnsyncronizedViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
+    private void createUnsyncronizedViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
         row.createCell(COL0_REQUEST_ID).setCellValue(viralLoaderResult.getRequestId());
         row.createCell(COL1_NID).setCellValue(viralLoaderResult.getNID());
         row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
@@ -470,10 +474,11 @@ public class FileUtils implements XLSColumnConstants {
         row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
         row.createCell(COL5_SENT_DATE).setCellValue(
                 viralLoaderResult.getCreatedAt().toLocalDate().format(DATE_FORMAT));
-        row.createCell(COL6_STATUS).setCellValue((viralLoaderResult.getViralLoadStatus()));
+        row.createCell(COL6_STATUS).setCellValue(messageSource
+                .getMessage("disa.viraLoadStatus." + viralLoaderResult.getViralLoadStatus(), new String[] {}, null));
     }
 
-    private static void createStatResultRow(Workbook workbook, Row row, String district,
+    private void createStatResultRow(Workbook workbook, Row row, String district,
             ViralResultStatistics viralResultStatistics) {
 
         for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
@@ -536,7 +541,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    private static void createStatLastResultRow(Workbook workbook, Row row,
+    private void createStatLastResultRow(Workbook workbook, Row row,
             String district,
             ViralResultStatistics viralResultStatistics) {
 
@@ -605,7 +610,7 @@ public class FileUtils implements XLSColumnConstants {
         }
     }
 
-    private static CellStyle getTotalsCellStyle(Workbook workbook) {
+    private CellStyle getTotalsCellStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         style.setAlignment(HorizontalAlignment.RIGHT);
         XSSFFont font = ((XSSFWorkbook) workbook).createFont();

@@ -10,6 +10,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -23,16 +24,21 @@ import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
 import disa.notification.service.service.interfaces.ViralLoaderResults;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
-import disa.notification.service.utils.FileUtils;
+import disa.notification.service.utils.SyncReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RequiredArgsConstructor
 @Log4j2
 public class MailServiceImpl implements MailService {
+
     public static final String EMAIL_SUBJECT = "Relatório de Sincronização de cargas virais de %s a %s";
+
     private final JavaMailSender mailSender;
+
     private final TemplateEngine templateEngine;
+
+    private final MessageSource messageSource;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -68,7 +74,8 @@ public class MailServiceImpl implements MailService {
 
         try {
             String fileName = "viral_Result_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
-            byte[] viralResultXLS = FileUtils.getViralResultXLS(viralLoaders, viralLoadResults,
+            SyncReport syncReport = new SyncReport(messageSource);
+            byte[] viralResultXLS = syncReport.getViralResultXLS(viralLoaders, viralLoadResults,
                     unsyncronizedViralLoadResults, pendingHealthFacilitySummaries);
             message.addAttachment(fileName, new ByteArrayResource(viralResultXLS));
 

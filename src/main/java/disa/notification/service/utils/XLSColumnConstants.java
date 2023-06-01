@@ -27,7 +27,7 @@ public interface XLSColumnConstants {
         CREATED_AT("Data de Entrada"),
         UPDATED_AT("Data de Sincronização"),
         VIRAL_RESULT_STATUS("Estado"),
-        VIRAL_RESULT_STATUS_CAUSE("Motivo de Não envio"),
+        NOT_PROCESSING_CAUSE("Motivo de Não envio"),
         OBS("Observacoes");
         private final String header;
 
