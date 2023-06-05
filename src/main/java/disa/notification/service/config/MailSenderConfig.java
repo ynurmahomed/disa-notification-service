@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -70,13 +71,14 @@ public class MailSenderConfig implements ApplicationContextAware, EnvironmentAwa
 
     @Bean
     @ConditionalOnProperty(name = "app.mailservice", havingValue = "javaMail")
-    public MailService mailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
-        return new MailServiceImpl(mailSender, templateEngine);
+    public MailService mailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine,
+            MessageSource messageSource) {
+        return new MailServiceImpl(mailSender, templateEngine, messageSource);
     }
 
     @Bean
     @ConditionalOnProperty(name = "app.mailservice", havingValue = "fileSystem")
-    MailService fileSystemMailService() {
-        return new FileSystemMailService();
+    MailService fileSystemMailService(MessageSource messageSource) {
+        return new FileSystemMailService(messageSource);
     }
 }
