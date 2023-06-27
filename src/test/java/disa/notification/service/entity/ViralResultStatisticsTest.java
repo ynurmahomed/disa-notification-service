@@ -14,7 +14,7 @@ public class ViralResultStatisticsTest {
                 .total(150)
                 .processed(70)
                 .pending(30)
-                .noProcessedNoResult(15)
+                .noProcessedInvalidResult(15)
                 .noProcessedNidNotFound(5)
                 .build();
 

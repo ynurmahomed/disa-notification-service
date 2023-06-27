@@ -1,5 +1,6 @@
 package disa.notification.service.service;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
@@ -22,11 +23,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ViralResultSenderTask {
     private static final Logger log = LoggerFactory.getLogger(ViralResultSenderTask.class);
+
     private final ViralLoaderService viralLoaderService;
     private final MailService mailService;
 
     @Scheduled(cron = "${task.cron}")
-    public void sendViralResultReport() {
+    public void sendViralResultReport() throws IOException {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
         log.info("A Compor Dados para envio");
 
@@ -43,14 +45,12 @@ public class ViralResultSenderTask {
                     .findPendingHealthFacilitySummary(notificationConfig.getProvince());
 
             try {
-                log.info("A enviar email...");
                 if (!result.isEmpty() || !pendingFor2Days.isEmpty()) {
                     mailService.sendEmail(notificationConfig, result, viralLoadResults, pendingFor2Days,
                             pendingHealthFacilitySummaries);
                 } else {
                     mailService.sendNoResultsEmail(notificationConfig);
                 }
-                log.info("Relatório de cargas virais enviado com sucesso!");
             } catch (UnsupportedEncodingException | MessagingException e) {
                 log.error("Erro ao enviar relatório de Cargas virais", e);
             }

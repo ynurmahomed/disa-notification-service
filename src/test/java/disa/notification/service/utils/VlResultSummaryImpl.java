@@ -13,9 +13,8 @@ public class VlResultSummaryImpl implements ViralLoaderResultSummary {
     private int totalReceived;
     private int totalPending;
     private int processed;
-    private int notProcessedNoResult;
+    private int notProcessedInvalidResult;
     private int notProcessedNidNotFount;
     private int notProcessedDuplicateNid;
-    private int notProcessedFlaggedForReview;
     private int notProcessedDuplicatedRequestId;
 }
