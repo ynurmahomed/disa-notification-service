@@ -1,24 +1,27 @@
 package disa.notification.service.service;
 
-import disa.notification.service.entity.NotificationConfig;
-import disa.notification.service.service.interfaces.*;
-import lombok.RequiredArgsConstructor;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import javax.mail.MessagingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.mail.MessagingException;
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.List;
+import disa.notification.service.entity.NotificationConfig;
+import disa.notification.service.service.interfaces.MailService;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
+import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.ViralLoaderResults;
+import disa.notification.service.service.interfaces.ViralLoaderService;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class ViralResultSenderTask {
     private static final Logger log = LoggerFactory.getLogger(ViralResultSenderTask.class);
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-
     private final ViralLoaderService viralLoaderService;
     private final MailService mailService;
 

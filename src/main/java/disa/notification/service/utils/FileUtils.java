@@ -2,7 +2,6 @@ package disa.notification.service.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -22,10 +21,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,10 +36,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileUtils implements XLSColumnConstants {
 
-    private static Logger logger = LoggerFactory.getLogger(FileUtils.class);
-
-    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private static DecimalFormat percentFormatter = new DecimalFormat("##.#%");
     private static String[][] dictionaries = new String[13][2];
 
     static {
@@ -108,7 +100,7 @@ public class FileUtils implements XLSColumnConstants {
         cell.setCellStyle(cellStyle);
     }
 
-    public static Resource getViralResultXLS(
+    public static ByteArrayResource getViralResultXLS(
             List<ViralLoaderResultSummary> viralLoaderResultSummary, List<ViralLoaderResults> viralLoadResults,
             List<ViralLoaderResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
@@ -333,12 +325,6 @@ public class FileUtils implements XLSColumnConstants {
         headerStyle.setFont(font);
         headerStyle.setAlignment(HorizontalAlignment.CENTER);
         return headerStyle;
-    }
-
-    private static CellStyle setCellStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setAlignment(HorizontalAlignment.CENTER);
-        return style;
     }
 
     private static CellStyle getPercentCellStyle(Workbook workbook) {
