@@ -30,8 +30,8 @@ import org.springframework.web.server.ResponseStatusException;
 import disa.notification.service.entity.ViralResultStatistics;
 import disa.notification.service.enums.ViralLoadStatus;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
-import disa.notification.service.service.interfaces.ViralLoaderResults;
+import disa.notification.service.service.interfaces.LabResultSummary;
+import disa.notification.service.service.interfaces.LabResults;
 
 
 public class SyncReport implements XLSColumnConstants {
@@ -72,8 +72,8 @@ public class SyncReport implements XLSColumnConstants {
     }
 
     public ByteArrayResource getViralResultXLS(
-            List<ViralLoaderResultSummary> viralLoaderResultSummary, List<ViralLoaderResults> viralLoadResults,
-            List<ViralLoaderResults> unsyncronizedViralLoadResults,
+            List<LabResultSummary> viralLoaderResultSummary, List<LabResults> viralLoadResults,
+            List<LabResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
             composeDictionarySheet(workbook);
@@ -125,7 +125,7 @@ public class SyncReport implements XLSColumnConstants {
         sheet.autoSizeColumn(1);
     }
 
-    public void composeReceivedByDistrictSheet(List<ViralLoaderResultSummary> viralLoaderResultSummaryList,
+    public void composeReceivedByDistrictSheet(List<LabResultSummary> viralLoaderResultSummaryList,
             Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
@@ -149,7 +149,7 @@ public class SyncReport implements XLSColumnConstants {
         Map<String, ViralResultStatistics> groupedByDistrict = viralLoaderResultSummaryList.stream()
                 .collect(
                         Collectors.groupingBy(
-                                ViralLoaderResultSummary::getRequestingDistrictName,
+                                LabResultSummary::getRequestingDistrictName,
                                 ViralResultStatisticsCollector.toVlResultStatistics()));
 
         groupedByDistrict.entrySet().stream()
@@ -202,13 +202,13 @@ public class SyncReport implements XLSColumnConstants {
         sheet4.autoSizeColumn(4);
     }
 
-    private void composePendingByNIDSheet(List<ViralLoaderResults> unsyncronizedViralLoadResults,
+    private void composePendingByNIDSheet(List<LabResults> unsyncronizedViralLoadResults,
             Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("Pendentes por NID");
         createFirstRow(workbook, sheet3, NOT_SYNCRONIZED_VIRAL_RESULTS, 7);
         createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
         int counter3 = 2;
-        for (ViralLoaderResults viralResult : unsyncronizedViralLoadResults) {
+        for (LabResults viralResult : unsyncronizedViralLoadResults) {
             Row row = sheet3.createRow(counter3++);
             createUnsyncronizedViralResultRow(row, viralResult);
         }
@@ -222,7 +222,7 @@ public class SyncReport implements XLSColumnConstants {
         sheet3.autoSizeColumn(7);
     }
 
-    private void composeReceivedByNIDSheet(List<ViralLoaderResults> viralLoadResults, Workbook workbook) {
+    private void composeReceivedByNIDSheet(List<LabResults> viralLoadResults, Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().format(DATE_FORMAT);
         String endDateFormatted = lastWeekInterval.getEndDateTime().format(DATE_FORMAT);
@@ -237,7 +237,7 @@ public class SyncReport implements XLSColumnConstants {
             cell.setCellStyle(headerCellStyle);
         }
         int rowNum = 2;
-        for (ViralLoaderResults viralResult : viralLoadResults) {
+        for (LabResults viralResult : viralLoadResults) {
             createReceivedByNIDRow(sheet2.createRow(rowNum++), viralResult);
         }
         for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
@@ -245,7 +245,7 @@ public class SyncReport implements XLSColumnConstants {
         }
     }
 
-    private void composeReceivedByUSSheet(List<ViralLoaderResultSummary> viralLoaderResultSummary,
+    private void composeReceivedByUSSheet(List<LabResultSummary> viralLoaderResultSummary,
             Workbook workbook) {
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
         String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
@@ -357,7 +357,7 @@ public class SyncReport implements XLSColumnConstants {
         return boldPercent;
     }
 
-    private void createViralResultSummaryRow(Row row, ViralLoaderResultSummary viralLoaderResult) {
+    private void createViralResultSummaryRow(Row row, LabResultSummary viralLoaderResult) {
         for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
             Cell cell = row.createCell(byHfSummary.ordinal());
             switch (byHfSummary) {
@@ -400,7 +400,7 @@ public class SyncReport implements XLSColumnConstants {
         }
     }
 
-    private void createReceivedByNIDRow(Row row, ViralLoaderResults viralLoaderResult) {
+    private void createReceivedByNIDRow(Row row, LabResults viralLoaderResult) {
 
         for (ResultsReceivedByNid byNID : ResultsReceivedByNid.values()) {
             Cell cell = row.createCell(byNID.ordinal());
@@ -472,7 +472,7 @@ public class SyncReport implements XLSColumnConstants {
                         .getLastSyncDate().toLocalDate().format(DATE_FORMAT) : "");
     }
 
-    private void createUnsyncronizedViralResultRow(Row row, ViralLoaderResults viralLoaderResult) {
+    private void createUnsyncronizedViralResultRow(Row row, LabResults viralLoaderResult) {
         row.createCell(COL0_REQUEST_ID).setCellValue(viralLoaderResult.getRequestId());
         row.createCell(COL1_NID).setCellValue(viralLoaderResult.getNID());
         row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());

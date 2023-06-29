@@ -1,6 +1,6 @@
 package disa.notification.service.entity;
 
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.LabResultSummary;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +20,7 @@ public class ViralResultStatistics {
     private int notProcessedDuplicateNid;
     private int notProcessedDuplicatedReqId;
 
-    public void accumulate(ViralLoaderResultSummary summary) {
+    public void accumulate(LabResultSummary summary) {
         total += summary.getTotalReceived();
         processed += summary.getProcessed();
         pending += summary.getTotalPending();

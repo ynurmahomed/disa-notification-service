@@ -8,17 +8,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 import disa.notification.service.entity.ViralResultStatistics;
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.LabResultSummary;
 
 public class ViralResultStatisticsCollector
-        implements Collector<ViralLoaderResultSummary, ViralResultStatistics, ViralResultStatistics> {
+        implements Collector<LabResultSummary, ViralResultStatistics, ViralResultStatistics> {
 
     public static ViralResultStatisticsCollector toVlResultStatistics() {
         return new ViralResultStatisticsCollector();
     }
 
     @Override
-    public BiConsumer<ViralResultStatistics, ViralLoaderResultSummary> accumulator() {
+    public BiConsumer<ViralResultStatistics, LabResultSummary> accumulator() {
         return (stats, summary) -> {
             stats.accumulate(summary);
         };

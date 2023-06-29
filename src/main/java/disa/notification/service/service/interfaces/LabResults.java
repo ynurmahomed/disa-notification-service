@@ -3,7 +3,7 @@ package disa.notification.service.service.interfaces;
 import java.time.LocalDateTime;
 
 
-public interface ViralLoaderResults {
+public interface LabResults {
 
      String getNID();
 
