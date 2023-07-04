@@ -1,11 +1,17 @@
 package disa.notification.service.service.interfaces;
 
-import disa.notification.service.entity.NotificationConfig;
-import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import javax.mail.MessagingException;
+
+import disa.notification.service.entity.ImplementingPartner;
+
 public interface MailService {
-    void sendEmail(NotificationConfig notificationConfig, final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults, List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws MessagingException, UnsupportedEncodingException;
-    void sendNoResultsEmail(NotificationConfig notificationConfig) throws MessagingException, UnsupportedEncodingException;
+    void sendEmail(ImplementingPartner ip, final List<ViralLoaderResultSummary> viralLoaders,
+            List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults,
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
+            throws MessagingException, UnsupportedEncodingException;
+
+    void sendNoResultsEmail(ImplementingPartner ip) throws MessagingException, UnsupportedEncodingException;
 }

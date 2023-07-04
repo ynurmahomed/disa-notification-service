@@ -17,7 +17,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import disa.notification.service.entity.NotificationConfig;
+import disa.notification.service.entity.ImplementingPartner;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
@@ -44,7 +44,7 @@ public class MailServiceImpl implements MailService {
     private String fromEmail;
 
     @Override
-    public void sendEmail(final NotificationConfig notificationConfig,
+    public void sendEmail(final ImplementingPartner ip,
             final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults,
             List<ViralLoaderResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
@@ -65,7 +65,7 @@ public class MailServiceImpl implements MailService {
         final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
         message.setSubject(String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted));
         message.setFrom(fromEmail, "[DISA_SESP]");
-        String[] mailList = notificationConfig.getMailList().split(",");
+        String[] mailList = ip.getMailListItems();
         message.setTo(mailList);
 
         // Create the HTML body using Thymeleaf
@@ -89,7 +89,7 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendNoResultsEmail(NotificationConfig notificationConfig)
+    public void sendNoResultsEmail(ImplementingPartner ip)
             throws MessagingException, UnsupportedEncodingException {
 
         Context ctx = new Context(new Locale("pt", "BR"));
@@ -105,7 +105,7 @@ public class MailServiceImpl implements MailService {
         final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
         message.setSubject(String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted));
         message.setFrom(fromEmail, "[DISA_SESP]");
-        String[] mailList = notificationConfig.getMailList().split(",");
+        String[] mailList = ip.getMailListItems();
         message.setTo(mailList);
 
         final String htmlContent = this.templateEngine.process("noResults.html", ctx);
