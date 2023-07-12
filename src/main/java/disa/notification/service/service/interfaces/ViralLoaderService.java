@@ -1,18 +1,15 @@
 package disa.notification.service.service.interfaces;
 
-import disa.notification.service.entity.NotificationConfig;
-
 import java.util.List;
 
+import disa.notification.service.entity.ImplementingPartner;
+
 public interface ViralLoaderService {
-    List<ViralLoaderResultSummary> findViralLoadsFromLastWeek(String province);
+    List<ViralLoaderResultSummary> findViralLoadsFromLastWeek(ImplementingPartner ip);
 
-    List<ViralLoaderResults> findViralLoadResultsFromLastWeek(String province);
+    List<ViralLoaderResults> findViralLoadResultsFromLastWeek(ImplementingPartner ip);
 
-    List<ViralLoaderResults> findViralLoadResultsPendingMoreThan2Days(String province);
+    List<ViralLoaderResults> findViralLoadResultsPendingMoreThan2Days(ImplementingPartner ip);
 
-    List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(String province);
-
-    List<NotificationConfig> findActive();
-
+    List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(ImplementingPartner ip);
 }
