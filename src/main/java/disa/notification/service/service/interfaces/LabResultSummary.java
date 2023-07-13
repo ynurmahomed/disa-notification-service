@@ -3,6 +3,7 @@ package disa.notification.service.service.interfaces;
 public interface LabResultSummary {
     String getRequestingDistrictName();
     String getHealthFacilityLabCode();
+    String getTypeOfResult();
     String getFacilityName();
     int getTotalReceived();
     int getTotalPending();

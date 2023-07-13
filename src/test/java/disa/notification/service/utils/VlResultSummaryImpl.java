@@ -9,6 +9,7 @@ import lombok.Getter;
 public class VlResultSummaryImpl implements LabResultSummary {
     private String requestingDistrictName;
     private String healthFacilityLabCode;
+    private String typeOfResult;
     private String facilityName;
     private int totalReceived;
     private int totalPending;

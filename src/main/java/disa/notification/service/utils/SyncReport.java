@@ -29,9 +29,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import disa.notification.service.entity.ViralResultStatistics;
 import disa.notification.service.enums.ViralLoadStatus;
-import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 
 
 public class SyncReport implements XLSColumnConstants {
@@ -41,6 +41,8 @@ public class SyncReport implements XLSColumnConstants {
     private MessageSource messageSource;
 
     private Map<String, String> dictionaries;
+    
+    private ViralResultStatistics totals;
 
     public SyncReport(MessageSource messageSource) {
         this.messageSource = messageSource;
@@ -144,25 +146,30 @@ public class SyncReport implements XLSColumnConstants {
             cell.setCellValue(r.header());
             cell.setCellStyle(headerCellStyle);
         }
-
+        
         AtomicInteger counter4 = new AtomicInteger(2);
-        Map<String, ViralResultStatistics> groupedByDistrict = viralLoaderResultSummaryList.stream()
-                .collect(
-                        Collectors.groupingBy(
-                                LabResultSummary::getRequestingDistrictName,
-                                ViralResultStatisticsCollector.toVlResultStatistics()));
-
-        groupedByDistrict.entrySet().stream()
-                .forEach(e -> {
-                    Row row = sheet4.createRow(counter4.getAndIncrement());
-                    createStatResultRow(workbook, row, e.getKey(), e.getValue());
+        Map<String, Map<String, ViralResultStatistics>> groupedByDistrictAndFacilityCode = viralLoaderResultSummaryList.stream()
+                							.collect(Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
+                									Collectors.groupingBy(LabResultSummary::getTypeOfResult, ViralResultStatisticsCollector.toVlResultStatistics())));
+                
+        groupedByDistrictAndFacilityCode.entrySet().stream().forEach(e -> {
+        	Map<String, ViralResultStatistics> typeOfResultMap = e.getValue();
+        	typeOfResultMap.entrySet().stream().forEach(k -> {
+        		Row row = sheet4.createRow(counter4.getAndIncrement());
+        		createStatResultRow(workbook, row, e.getKey(), k.getValue());
+        	});
                 });
-
-        ViralResultStatistics totals = groupedByDistrict.values().stream()
-                .collect(ViralResultStatistics::new,
-                        (a, b) -> a.accumulate(b),
-                        (a, b) -> a.combine(b));
-
+        
+        
+        groupedByDistrictAndFacilityCode.values().stream().forEach(resultMap -> {
+            resultMap.values().stream().forEach(resultStats -> {
+            totals = resultMap.values().stream()
+                        .collect(ViralResultStatistics::new,
+                                (a, b) -> a.accumulate(b),
+                                (a, b) -> a.combine(b));
+            });
+        });
+        
         Row row = sheet4.createRow(counter4.getAndIncrement());
         createStatLastResultRow(workbook, row, "Total", totals);
 
@@ -371,7 +378,7 @@ public class SyncReport implements XLSColumnConstants {
                     cell.setCellValue(viralLoaderResult.getFacilityName());
                     break;
                 case TYPE_OF_RESULT:
-                    cell.setCellValue("HIVVL");
+                    cell.setCellValue(viralLoaderResult.getTypeOfResult()); 
                     break;
                 case TOTAL_RECEIVED:
                     cell.setCellValue(viralLoaderResult.getTotalReceived());
@@ -410,7 +417,7 @@ public class SyncReport implements XLSColumnConstants {
                     break;
 
                 case TYPE_OF_RESULT:
-                    cell.setCellValue("HIVVL");
+                    cell.setCellValue(viralLoaderResult.getTypeOfResult()); 
                     break;
                 case NID:
                     cell.setCellValue(viralLoaderResult.getNID());
@@ -494,7 +501,7 @@ public class SyncReport implements XLSColumnConstants {
                     cell.setCellValue(district);
                     break;
                 case TYPE_OF_RESULT:
-                    cell.setCellValue("HIVVL");
+                    cell.setCellValue(viralResultStatistics.getTypeOfResult());  
                     break;
                 case TOTAL_PROCESSED:
                     cell.setCellValue(viralResultStatistics.getProcessed());

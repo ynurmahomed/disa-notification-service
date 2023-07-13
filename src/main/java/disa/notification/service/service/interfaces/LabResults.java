@@ -14,9 +14,11 @@ public interface LabResults {
      String getLastName();
 
      String getHealthFacilityLabCode();
+     
+     String getTypeOfResult();
 
      String getRequestingFacilityName();
-
+     
      String  getViralLoadStatus();
 
      String getNotProcessingCause();
