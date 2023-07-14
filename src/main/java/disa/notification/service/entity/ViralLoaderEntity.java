@@ -1,14 +1,19 @@
 package disa.notification.service.entity;
 
-import disa.notification.service.enums.NotProcessingCause;
-import disa.notification.service.enums.ViralLoadStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import disa.notification.service.enums.NotProcessingCause;
+import disa.notification.service.enums.ViralLoadStatus;
+import lombok.Data;
 
 @Entity(name = ViralLoaderEntity.TABLE_NAME)
 @Table(name = ViralLoaderEntity.TABLE_NAME)
@@ -16,9 +21,9 @@ import java.time.LocalDateTime;
 public class ViralLoaderEntity {
 
     @Id
-    private Integer id;
+    private Long id;
 
-    public static final String TABLE_NAME= "VlData";
+    public static final String TABLE_NAME = "VlData";
     @Column(name = "UNIQUEID")
     private String nid;
 

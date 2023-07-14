@@ -1,48 +1,45 @@
 package disa.notification.service.service.impl;
 
-import disa.notification.service.entity.NotificationConfig;
-import disa.notification.service.repository.NotificationConfigRepository;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import disa.notification.service.entity.ImplementingPartner;
 import disa.notification.service.repository.ViralLoaderRepository;
-import disa.notification.service.service.interfaces.*;
+import disa.notification.service.service.interfaces.LabResultSummary;
+import disa.notification.service.service.interfaces.LabResults;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
+import disa.notification.service.service.interfaces.ViralLoaderService;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
-public class ViralLoaderServiceImpl  implements LabLoaderService {
+public class ViralLoaderServiceImpl implements ViralLoaderService {
     private final ViralLoaderRepository viralLoaderRepository;
-    private final NotificationConfigRepository notificationConfigRepository;
 
     @Override
-    public  List<LabResultSummary> findLabSummaryResultsFromLastWeek(String province) {
-        DateInterval lastWeekInterval= DateTimeUtils.getLastWeekInterVal();
-        return viralLoaderRepository.findViralLoadResultSummary(lastWeekInterval.getStartDateTime(),lastWeekInterval.getEndDateTime(),province);
+    public List<LabResultSummary> findViralLoadsFromLastWeek(ImplementingPartner ip) {
+        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
+        return viralLoaderRepository.findViralLoadResultSummary(lastWeekInterval.getStartDateTime(),
+                lastWeekInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override
-    public List<LabResults> findLabResultsFromLastWeek(String province) {
-        DateInterval lastWeekInterval= DateTimeUtils.getLastWeekInterVal();
-        return viralLoaderRepository.findViralLoadResults(lastWeekInterval.getStartDateTime(),lastWeekInterval.getEndDateTime(),province);
+    public List<LabResults> findViralLoadResultsFromLastWeek(ImplementingPartner ip) {
+        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
+        return viralLoaderRepository.findViralLoadResults(lastWeekInterval.getStartDateTime(),
+                lastWeekInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override
-    public List<LabResults> findLabResultsPendingMoreThan2Days(String province) {
-        return viralLoaderRepository.findViralLoadResultsPendingMoreThan2Days(province);
+    public List<LabResults> findViralLoadResultsPendingMoreThan2Days(ImplementingPartner ip) {
+        return viralLoaderRepository.findViralLoadResultsPendingMoreThan2Days(ip.getOrgUnitCodes());
     }
 
     @Override
-    public List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(String province) {
-       return viralLoaderRepository.findUnsincronizedHealthFacilities(province);
-
+    public List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(ImplementingPartner ip) {
+        return viralLoaderRepository.findUnsincronizedHealthFacilities(ip.getOrgUnitCodes());
     }
-
-    @Override
-    public List<NotificationConfig> findActive() {
-        return notificationConfigRepository.findByActiveTrue();
-    }
-
 }

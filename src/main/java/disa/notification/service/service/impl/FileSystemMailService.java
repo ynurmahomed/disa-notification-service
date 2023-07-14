@@ -13,11 +13,11 @@ import javax.mail.MessagingException;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 
-import disa.notification.service.entity.NotificationConfig;
-import disa.notification.service.service.interfaces.MailService;
-import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
+import disa.notification.service.entity.ImplementingPartner;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
+import disa.notification.service.service.interfaces.MailService;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.SyncReport;
@@ -35,8 +35,7 @@ public class FileSystemMailService implements MailService {
         this.messageSource = messageSource;
     }
 
-    @Override
-    public void sendEmail(NotificationConfig notificationConfig, List<LabResultSummary> viralLoaders,
+    public void sendEmail(ImplementingPartner ip, List<LabResultSummary> viralLoaders,
             List<LabResults> viralLoadResults, List<LabResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
             throws MessagingException, UnsupportedEncodingException {
@@ -60,7 +59,7 @@ public class FileSystemMailService implements MailService {
     }
 
     @Override
-    public void sendNoResultsEmail(NotificationConfig notificationConfig)
+    public void sendNoResultsEmail(ImplementingPartner ip)
             throws MessagingException, UnsupportedEncodingException {
         log.info("No results to generate xls.");
     }

@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import disa.notification.service.entity.NotificationConfig;
+import disa.notification.service.entity.ImplementingPartner;
+import disa.notification.service.repository.ImplementingPartnerRepository;
 import disa.notification.service.service.interfaces.LabLoaderService;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
@@ -24,6 +25,7 @@ public class LabResultSenderTask {
     private static final Logger log = LoggerFactory.getLogger(LabResultSenderTask.class);
 
     private final LabLoaderService labLoaderService;
+    private final ImplementingPartnerRepository ipRepository;
     private final MailService mailService;
 
     @Scheduled(cron = "${task.cron}")
@@ -31,25 +33,25 @@ public class LabResultSenderTask {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
         log.info("A Compor Dados para envio");
 
-        List<NotificationConfig> notificationConfigs = labLoaderService.findActive();
+        List<ImplementingPartner> implementingPartners = ipRepository.findByEnabledTrue();
         
-        for (NotificationConfig notificationConfig : notificationConfigs) {
-            log.info(" A Sincronizar Dados da Provincia de {}", notificationConfig.getProvince());
-            sendEmailForNotificationConfig(notificationConfig);
+        for (ImplementingPartner implementingPartner : implementingPartners) {
+            log.info(" A Sincronizar Dados da Provincia de {}", implementingPartner.getOrgName()); 
+            sendEmailForImplementingPartner(implementingPartner);
         }
     }
     
-    private void sendEmailForNotificationConfig(NotificationConfig notificationConfig) {
-        List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromLastWeek(notificationConfig.getProvince());
-        List<LabResults> labResults = labLoaderService.findLabResultsFromLastWeek(notificationConfig.getProvince());
-        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService.findLabResultsPendingMoreThan2Days(notificationConfig.getProvince());
-        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService.findPendingHealthFacilitySummary(notificationConfig.getProvince());
+    private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
+        List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromLastWeek(implementingPartner);
+        List<LabResults> labResults = labLoaderService.findLabResultsFromLastWeek(implementingPartner);
+        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService.findLabResultsPendingMoreThan2Days(implementingPartner);
+        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService.findPendingHealthFacilitySummary(implementingPartner);
 
         try {
             if (!labResultSummary.isEmpty() || !pendingResultsForMoreThan2Days.isEmpty()) {
-                mailService.sendEmail(notificationConfig, labResultSummary, labResults, pendingResultsForMoreThan2Days, pendingHealthFacilitySummaries);
+                mailService.sendEmail(implementingPartner, labResultSummary, labResults, pendingResultsForMoreThan2Days, pendingHealthFacilitySummaries);
             } else {
-                mailService.sendNoResultsEmail(notificationConfig);
+                mailService.sendNoResultsEmail(implementingPartner);
             }
         } catch (IOException | MessagingException e) {
             log.error("Erro ao enviar relatório de Cargas virais", e);

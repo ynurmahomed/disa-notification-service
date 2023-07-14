@@ -1,12 +1,9 @@
 package disa.notification.service.config;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -27,12 +24,11 @@ import lombok.Setter;
 
 @Configuration
 @Setter
-public class MailSenderConfig implements ApplicationContextAware, EnvironmentAware {
-    private ApplicationContext applicationContext;
+public class MailSenderConfig implements EnvironmentAware {
     private Environment environment;
 
     @Bean
-    public JavaMailSender mailSender() throws IOException {
+    public JavaMailSender mailSender() {
         final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(this.environment.getProperty("spring.mail.host"));
         mailSender.setPort(Integer.parseInt(this.environment.getProperty("spring.mail.port")));
