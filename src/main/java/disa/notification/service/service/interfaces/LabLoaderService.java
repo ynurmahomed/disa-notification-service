@@ -13,7 +13,4 @@ public interface LabLoaderService {
     List<LabResults> findLabResultsPendingMoreThan2Days(ImplementingPartner ip);
 
     List<PendingHealthFacilitySummary> findPendingHealthFacilitySummary(ImplementingPartner ip);
-
-    List<ImplementingPartner> findActive();
-
 }

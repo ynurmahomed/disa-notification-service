@@ -17,10 +17,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import disa.notification.service.entity.ImplementingPartner;
-import disa.notification.service.service.interfaces.MailService;
-import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
+import disa.notification.service.service.interfaces.MailService;
+import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.MultipartUtil;
@@ -46,21 +46,14 @@ public class MailServiceImpl implements MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-<<<<<<< HEAD
     @Value("${disa.notifier.rest.endpoint}") 
     private String disaNotifierEndPoint;
     
-    public void sendEmail(final NotificationConfig notificationConfig,
-            final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
-            List<LabResults> unsyncronizedViralLoadResults,
-=======
     @Override
     public void sendEmail(final ImplementingPartner ip,
-            final List<ViralLoaderResultSummary> viralLoaders, List<ViralLoaderResults> viralLoadResults,
-            List<ViralLoaderResults> unsyncronizedViralLoadResults,
->>>>>>> b36528ed97a45389f0024a50486fb2f43865c6cc
-            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
-            throws MessagingException, IOException {
+            final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
+            List<LabResults> unsyncronizedViralLoadResults,
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries){ 
     	
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
@@ -73,25 +66,19 @@ public class MailServiceImpl implements MailService {
         ctx.setVariable("toDate", endDateFormatted);
         ctx.setVariable("viralLoaders", viralLoaders);
 
-<<<<<<< HEAD
-=======
-        // Prepare message using a Spring helper
-        final MimeMessage mimeMessage = this.mailSender.createMimeMessage();
-        final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
-        message.setSubject(String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted));
-        message.setFrom(fromEmail, "[DISA_SESP]");
-        String[] mailList = ip.getMailListItems();
-        message.setTo(mailList);
-
->>>>>>> b36528ed97a45389f0024a50486fb2f43865c6cc
         // Create the HTML body using Thymeleaf
         templateEngine = TemplateEngineUtils.getTemplateEngine();
-        final String htmlContent = this.templateEngine.process("index", ctx);
+        final String htmlContent = this.templateEngine.process("index.html", ctx);
 
         String attachmentName = "Lab_Results_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
         SyncReport syncReport = new SyncReport(messageSource);
-        String[] mailList = notificationConfig.getMailList().split(",");
-        ByteArrayResource attachment = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults, pendingHealthFacilitySummaries);
+        String[] mailList = ip.getMailList().split(",");
+        ByteArrayResource attachment = null; 
+		try {
+			attachment = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults, pendingHealthFacilitySummaries);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
         sendEmailHelper(mailList, htmlContent, attachment, "notification", attachmentName, startDateFormatted, endDateFormatted);
     }
 
@@ -106,10 +93,9 @@ public class MailServiceImpl implements MailService {
         ctx.setVariable("fromDate", startDateFormatted);
         ctx.setVariable("toDate", endDateFormatted);
 
-<<<<<<< HEAD
-        String[] mailList = notificationConfig.getMailList().split(",");
+        String[] mailList = ip.getMailListItems();
         templateEngine = TemplateEngineUtils.getTemplateEngine();
-        final String htmlContent = this.templateEngine.process("noResults", ctx);
+        final String htmlContent = this.templateEngine.process("noResults.html", ctx);
         sendEmailHelper(mailList, htmlContent, null, "notification", null, startDateFormatted, endDateFormatted);
     }
     
@@ -133,19 +119,5 @@ public class MailServiceImpl implements MailService {
         } else {
         	log.error("Failed to send email. Response code: " + emailResult.getStatusCode());
         }
-=======
-        final MimeMessage mimeMessage = this.mailSender.createMimeMessage();
-        final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
-        message.setSubject(String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted));
-        message.setFrom(fromEmail, "[DISA_SESP]");
-        String[] mailList = ip.getMailListItems();
-        message.setTo(mailList);
-
-        final String htmlContent = this.templateEngine.process("noResults.html", ctx);
-        message.setText(htmlContent, true);
-
-        this.mailSender.send(mimeMessage);
-
->>>>>>> b36528ed97a45389f0024a50486fb2f43865c6cc
     }
 }

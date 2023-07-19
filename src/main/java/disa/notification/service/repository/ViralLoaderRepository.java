@@ -39,7 +39,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
 
     @Query(value = "select VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending " +
             ",lastSync.lastSyncDate from (SELECT RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,RequestingFacilityName as facilityName,Count(RequestingDistrictName) as  totalPending " +
-            "   from VlData where RequestingFacilityCode in (:ouCodes) AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 AND ENTITY_STATUS = 'ACTIVE' AND TypeOfResult='HIVVL' group by RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
+            "   from VlData where RequestingFacilityCode in (:ouCodes) AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 AND ENTITY_STATUS = 'ACTIVE' AND TypeOfResult IN ('HIVVL','CD4') group by RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
             "  left join (SELECT RequestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingFacilityCode in (:ouCodes) AND ENTITY_STATUS = 'ACTIVE' AND TypeOfResult IN ('HIVVL','CD4')" +
             "  group by RequestingDistrictName,RequestingFacilityCode ) lastSync on VLPendente.healthFacilityLabCode=lastSync.healthFacilityLabCode and VLPendente.requestingDistrictName=lastSync.RequestingDistrictName",nativeQuery = true)
     List<PendingHealthFacilitySummary> findUnsincronizedHealthFacilities(@Param("ouCodes") Set<String> orgUnitCodes);
