@@ -8,8 +8,9 @@ import javax.mail.MessagingException;
 import disa.notification.service.entity.ImplementingPartner;
 
 public interface MailService {
-    void sendEmail(ImplementingPartner ip, final List<ViralLoaderResultSummary> viralLoaders,
-            List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults,
+
+    void sendEmail(ImplementingPartner ip, final List<LabResultSummary> viralLoaders,
+            List<LabResults> viralLoadResults, List<LabResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
             throws MessagingException, UnsupportedEncodingException;
 

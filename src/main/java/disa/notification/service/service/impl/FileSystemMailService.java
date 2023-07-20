@@ -11,12 +11,13 @@ import java.util.List;
 import javax.mail.MessagingException;
 
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
 
 import disa.notification.service.entity.ImplementingPartner;
+import disa.notification.service.service.interfaces.LabResultSummary;
+import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
-import disa.notification.service.service.interfaces.ViralLoaderResults;
 import disa.notification.service.utils.DateInterval;
 import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.SyncReport;
@@ -34,9 +35,8 @@ public class FileSystemMailService implements MailService {
         this.messageSource = messageSource;
     }
 
-    @Override
-    public void sendEmail(ImplementingPartner ip, List<ViralLoaderResultSummary> viralLoaders,
-            List<ViralLoaderResults> viralLoadResults, List<ViralLoaderResults> unsyncronizedViralLoadResults,
+    public void sendEmail(ImplementingPartner ip, List<LabResultSummary> viralLoaders,
+            List<LabResults> viralLoadResults, List<LabResults> unsyncronizedViralLoadResults,
             List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries)
             throws MessagingException, UnsupportedEncodingException {
 
@@ -46,11 +46,11 @@ public class FileSystemMailService implements MailService {
             String start = formatter.format(lastWeekInterval.getStartDateTime());
             String end = formatter.format(lastWeekInterval.getEndDateTime());
             SyncReport syncReport = new SyncReport(messageSource);
-            byte[] xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
+            ByteArrayResource xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
                     pendingHealthFacilitySummaries);
             Path path = Paths.get("viral_Result_from_" + start + "_To_" + end + ".xlsx");
-            Files.write(path, xls);
-            log.info("File writen to path {}", path.toAbsolutePath());
+            Files.write(path, xls.getByteArray());  
+            log.info("File writen to path {}", path.toAbsolutePath()); 
 
         } catch (IOException e) {
             e.printStackTrace();

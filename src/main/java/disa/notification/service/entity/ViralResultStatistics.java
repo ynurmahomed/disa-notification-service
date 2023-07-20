@@ -1,6 +1,6 @@
 package disa.notification.service.entity;
 
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.LabResultSummary;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ViralResultStatistics {
-
+	
+	private String typeOfResult; 
     private int total;
     private int processed;
     private int pending;
@@ -20,7 +21,8 @@ public class ViralResultStatistics {
     private int notProcessedDuplicateNid;
     private int notProcessedDuplicatedReqId;
 
-    public void accumulate(ViralLoaderResultSummary summary) {
+    public void accumulate(LabResultSummary summary) {
+    	typeOfResult = summary.getTypeOfResult();
         total += summary.getTotalReceived();
         processed += summary.getProcessed();
         pending += summary.getTotalPending();
@@ -68,4 +70,8 @@ public class ViralResultStatistics {
     public double getNotProcessedDuplicatedReqIdPercentage() {
         return total == 0 ? 0.0 : (double) notProcessedDuplicatedReqId / total;
     }
+
+	public String getTypeOfResult() {
+		return typeOfResult;
+	}
 }

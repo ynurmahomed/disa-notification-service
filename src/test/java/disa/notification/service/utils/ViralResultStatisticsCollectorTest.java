@@ -8,7 +8,7 @@ import java.util.function.BinaryOperator;
 import org.junit.jupiter.api.Test;
 
 import disa.notification.service.entity.ViralResultStatistics;
-import disa.notification.service.service.interfaces.ViralLoaderResultSummary;
+import disa.notification.service.service.interfaces.LabResultSummary;
 
 public class ViralResultStatisticsCollectorTest {
 
@@ -18,7 +18,7 @@ public class ViralResultStatisticsCollectorTest {
         ViralResultStatisticsCollector collector = new ViralResultStatisticsCollector();
 
         // Create a test summary
-        ViralLoaderResultSummary summary = VlResultSummaryImpl.builder()
+        LabResultSummary summary = VlResultSummaryImpl.builder()
                 .totalReceived(100)
                 .processed(50)
                 .totalPending(30)
@@ -30,7 +30,7 @@ public class ViralResultStatisticsCollectorTest {
         ViralResultStatistics statistics = new ViralResultStatistics();
 
         // Get the accumulator BiConsumer from the ViralResultStatisticsCollector instance
-        BiConsumer<ViralResultStatistics, ViralLoaderResultSummary> accumulator = collector.accumulator();
+        BiConsumer<ViralResultStatistics, LabResultSummary> accumulator = collector.accumulator();
 
         // Use the accumulator to add the test summary to the statistics
         accumulator.accept(statistics, summary);
