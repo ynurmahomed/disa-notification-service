@@ -42,8 +42,6 @@ public class SyncReport implements XLSColumnConstants {
 
     private Map<String, String> dictionaries;
     
-    private ViralResultStatistics totals;
-
     public SyncReport(MessageSource messageSource) {
         this.messageSource = messageSource;
 
@@ -160,15 +158,12 @@ public class SyncReport implements XLSColumnConstants {
         	});
                 });
         
-        
-        groupedByDistrictAndFacilityCode.values().stream().forEach(resultMap -> {
-            resultMap.values().stream().forEach(resultStats -> {
-            totals = resultMap.values().stream()
-                        .collect(ViralResultStatistics::new,
-                                (a, b) -> a.accumulate(b),
-                                (a, b) -> a.combine(b));
-            });
-        });
+        ViralResultStatistics totals = new ViralResultStatistics();
+        for (Map<String, ViralResultStatistics> district : groupedByDistrictAndFacilityCode.values()) {
+            for (ViralResultStatistics stats : district.values()) {
+                totals.accumulate(stats);
+            }
+        }
         
         Row row = sheet4.createRow(counter4.getAndIncrement());
         createStatLastResultRow(workbook, row, "Total", totals);
