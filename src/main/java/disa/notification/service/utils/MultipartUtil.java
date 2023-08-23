@@ -15,16 +15,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import disa.notification.service.model.EmailDTO;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class MultipartUtil {
 
-	public static ResponseEntity<String> sendMultipartRequest(String url, String[] mailList, 
-													   String subject, String body, 
-													   byte[] fileBytes, String module, String attachmentName,String startDate, 
-													   String endDate) throws IOException {
-		
+	public static ResponseEntity<String> sendMultipartRequest(String url, String[] mailList,
+			String subject, String body,
+			byte[] fileBytes, String module, String attachmentName, String startDate,
+			String endDate) throws IOException {
+
 		RestTemplate restTemplate = new RestTemplate();
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -33,20 +35,20 @@ public class MultipartUtil {
 		// JSON Part
 		HttpHeaders jsonHeaders = new HttpHeaders();
 		jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
-		
+
 		EmailDTO emailDto = new EmailDTO();
 		emailDto.setTo(mailList);
 		emailDto.setSubject(subject);
 		emailDto.setBody(body);
 		emailDto.setModule(module);
 		emailDto.setStartDate(startDate);
-		emailDto.setEndDate(endDate); 
-		
+		emailDto.setEndDate(endDate);
+
 		HttpEntity<EmailDTO> jsonEntity = new HttpEntity<>(emailDto, jsonHeaders);
 		requestBody.add("data", jsonEntity);
 
 		// File Part
-		if (fileBytes!=null) { 
+		if (fileBytes != null) {
 			HttpHeaders fileHeaders = new HttpHeaders();
 			fileHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
 			ByteArrayResource fileAsResource = new ByteArrayResource(fileBytes) {
@@ -58,19 +60,14 @@ public class MultipartUtil {
 			HttpEntity<ByteArrayResource> fileEntity = new HttpEntity<>(fileAsResource, fileHeaders);
 			requestBody.add("attachment", fileEntity);
 		}
-		
+
 		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
 		try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-            
-            if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                return ResponseEntity.ok("Email sent successfully.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email. Response code: " + responseEntity.getStatusCode());
-            }
-        } catch (RestClientException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email. Error message: " + e.getMessage());
-        }
+			return restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+		} catch (RestClientException e) {
+			log.error(e);
+			return null;
+		}
 	}
 }

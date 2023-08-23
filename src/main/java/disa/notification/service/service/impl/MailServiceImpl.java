@@ -11,8 +11,8 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -32,13 +32,11 @@ import lombok.extern.log4j.Log4j2;
 public class MailServiceImpl implements MailService {
 
     public static final String EMAIL_SUBJECT = "Relatório de Sincronização de resultados lab de %s a %s";
-    
-    private final JavaMailSender mailSender;
+
     private TemplateEngine templateEngine;
     private final MessageSource messageSource;
-    
-    public MailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, MessageSource messageSource) {
-        this.mailSender = mailSender;
+
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
     }
@@ -46,15 +44,15 @@ public class MailServiceImpl implements MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Value("${disa.notifier.rest.endpoint}") 
+    @Value("${disa.notifier.rest.endpoint}")
     private String disaNotifierEndPoint;
-    
+
     @Override
     public void sendEmail(final ImplementingPartner ip,
             final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
             List<LabResults> unsyncronizedViralLoadResults,
-            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries){ 
-    	
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
+
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
@@ -73,13 +71,15 @@ public class MailServiceImpl implements MailService {
         String attachmentName = "Lab_Results_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
         SyncReport syncReport = new SyncReport(messageSource);
         String[] mailList = ip.getMailList().split(",");
-        ByteArrayResource attachment = null; 
-		try {
-			attachment = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults, pendingHealthFacilitySummaries);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        sendEmailHelper(mailList, htmlContent, attachment, "notification", attachmentName, startDateFormatted, endDateFormatted);
+        ByteArrayResource attachment = null;
+        try {
+            attachment = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
+                    pendingHealthFacilitySummaries);
+            sendEmailHelper(mailList, htmlContent, attachment, "notification", attachmentName, startDateFormatted,
+                    endDateFormatted);
+        } catch (IOException e) {
+            log.error(e);
+        }
     }
 
     @Override
@@ -88,8 +88,10 @@ public class MailServiceImpl implements MailService {
 
         Context ctx = new Context(new Locale("pt", "BR"));
         DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         ctx.setVariable("fromDate", startDateFormatted);
         ctx.setVariable("toDate", endDateFormatted);
 
@@ -98,26 +100,32 @@ public class MailServiceImpl implements MailService {
         final String htmlContent = this.templateEngine.process("noResults.html", ctx);
         sendEmailHelper(mailList, htmlContent, null, "notification", null, startDateFormatted, endDateFormatted);
     }
-    
-    private void sendEmailHelper(String[] mailList, String htmlContent, ByteArrayResource attachment, String module, String attachmentName, String startDateFormatted, String endDateFormatted) {
-    	
+
+    private void sendEmailHelper(String[] mailList, String htmlContent, ByteArrayResource attachment, String module,
+            String attachmentName, String startDateFormatted, String endDateFormatted) {
+
         String subject = String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted);
         byte[] byteArray = null;
-        
+
         ResponseEntity<String> emailResult = null;
-        if (attachment!=null) { 
-        	byteArray = attachment.getByteArray();
+        if (attachment != null) {
+            byteArray = attachment.getByteArray();
         }
-        
-		try {
-			emailResult = MultipartUtil.sendMultipartRequest(disaNotifierEndPoint, mailList, 
-					subject, htmlContent, byteArray, module, attachmentName, startDateFormatted, endDateFormatted);
-		} catch (IOException e) {e.printStackTrace();}
-        
-        if (emailResult.getStatusCode().is2xxSuccessful()) {
-            log.info("Email sent successfully");
-        } else {
-        	log.error("Failed to send email. Response code: " + emailResult.getStatusCode());
+
+        try {
+
+            emailResult = MultipartUtil.sendMultipartRequest(disaNotifierEndPoint, mailList,
+                    subject, htmlContent, byteArray, module, attachmentName, startDateFormatted, endDateFormatted);
+
+            if (emailResult != null && emailResult.getStatusCode().is2xxSuccessful()) {
+                log.info("Email sent successfully");
+            } else if (emailResult != null) {
+                log.error("Failed to send email. Response code: " + emailResult.getStatusCode());
+            }
+
+        } catch (IOException e) {
+            log.error(e);
         }
+
     }
 }
