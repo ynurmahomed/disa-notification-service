@@ -29,18 +29,18 @@ public class LabResultSenderTask {
     private final MailService mailService;
 
     @Scheduled(cron = "${task.cron}")
-    public void sendLabResultReport() throws IOException {
+    public void sendLabResultReport() {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
         log.info("A Compor Dados para envio");
 
         List<ImplementingPartner> implementingPartners = ipRepository.findByEnabledTrue();
-        
+
         for (ImplementingPartner implementingPartner : implementingPartners) {
-            log.info(" A Sincronizar Dados da Provincia de {}", implementingPartner.getOrgName()); 
+            log.info(" A Sincronizar Dados da Provincia de {}", implementingPartner.getOrgName());
             sendEmailForImplementingPartner(implementingPartner);
         }
     }
-    
+
     private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
         List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromLastWeek(implementingPartner);
         List<LabResults> labResults = labLoaderService.findLabResultsFromLastWeek(implementingPartner);
