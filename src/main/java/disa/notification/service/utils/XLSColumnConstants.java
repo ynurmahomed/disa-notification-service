@@ -85,9 +85,9 @@ public interface XLSColumnConstants {
     String NOT_SYNCRONIZED_VIRAL_RESULTS = "Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
     String PENDING_VIRAL_RESULT_SUMMARY = "Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por US ";
 
-    String STATS_TITLE = "Resultados de CVs por Distrito recebidos no Período de Domingo (%s) a Sábado (%s) da semana anterior";
+    String STATS_TITLE = "Resultados recebidos por Distrito no Período de Domingo (%s) a Sábado (%s) da semana anterior";
 
-    String[] PENDING_VIRAL_RESULT_SUMMARY_HEADER = { "Distrito", "Código da US", "Nome da US", "No. CVs Pendentes",
+    String[] PENDING_VIRAL_RESULT_SUMMARY_HEADER = { "Distrito", "Código da US", "Nome da US", "No. Resultados Pendentes",
             "Data da Última Sincronização" };
     int COL3_TOTAL_PENDING = 3;
     int COL4_LAST_SYNC_DATE = 4;
