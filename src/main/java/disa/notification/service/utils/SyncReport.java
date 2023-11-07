@@ -80,8 +80,8 @@ public class SyncReport implements XLSColumnConstants {
             composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
             composeReceivedByUSSheet(viralLoaderResultSummary, workbook);
             composeReceivedByNIDSheet(viralLoadResults, workbook);
-            composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
             composePendingByUSSheet(pendingHealthFacilitySummaries, workbook);
+            composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
             workbook.write(stream);
             return new ByteArrayResource(stream.toByteArray());
         } catch (IOException ioe) {
