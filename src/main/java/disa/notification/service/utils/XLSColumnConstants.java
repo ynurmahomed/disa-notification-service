@@ -75,8 +75,15 @@ public interface XLSColumnConstants {
     int COL9_NOT_PROCESSED_DUPLICATED_REQUEST_ID=9;
     int COL10_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 10;
 
-    String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = { "ID da Requisição", "NID", "Distrito", "Codigo da US", "Nome da US",
-            "Data de Envio", "Estado" };
+    String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = {
+        "ID da Requisição",
+        "NID",
+        "Distrito",
+        "Codigo da US",
+        "Nome da US",
+        "Data de Entrada",
+        "Estado"
+    };
     int COL5_SENT_DATE = 5;
     int COL6_STATUS = 6;
 
