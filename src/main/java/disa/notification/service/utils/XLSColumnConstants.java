@@ -87,10 +87,10 @@ public interface XLSColumnConstants {
     int COL5_SENT_DATE = 5;
     int COL6_STATUS = 6;
 
-    String VIRAL_RESULT_SUMMARY_TITLE = "Resultados de CV Recebidos no Servidor de Integração no Período de Domingo (%s) a Sábado (%s) da semana enterior por US";
-    String VIRAL_RESULT_TITLE = "Resultados de CV Recebidos no Servidor de Integração no Periodo de Domingo (%s) a Sábado (%s) da semana anterior";
-    String NOT_SYNCRONIZED_VIRAL_RESULTS = "Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
-    String PENDING_VIRAL_RESULT_SUMMARY = "Resultados de CV Pendentes no Servidor de Integração há mais de 48 horas por US ";
+    String VIRAL_RESULT_SUMMARY_TITLE = "Resultados Recebidos no Servidor de Integração no Período de Domingo (%s) a Sábado (%s) da semana enterior por US";
+    String VIRAL_RESULT_TITLE = "Resultados Recebidos no Servidor de Integração no Periodo de Domingo (%s) a Sábado (%s) da semana anterior";
+    String NOT_SYNCRONIZED_VIRAL_RESULTS = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
+    String PENDING_VIRAL_RESULT_SUMMARY = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por US ";
 
     String STATS_TITLE = "Resultados recebidos por Distrito no Período de Domingo (%s) a Sábado (%s) da semana anterior";
 
