@@ -33,17 +33,19 @@ import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 
-
 public class SyncReport implements XLSColumnConstants {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private MessageSource messageSource;
 
+    private DateInterval reportDateInterval;
+
     private Map<String, String> dictionaries;
-    
-    public SyncReport(MessageSource messageSource) {
+
+    public SyncReport(MessageSource messageSource, DateInterval reportDateInterval) {
         this.messageSource = messageSource;
+        this.reportDateInterval = reportDateInterval;
 
         Map<String, String> d = new LinkedHashMap<>(12);
         d.put("Total Recebidos", "Número total de resultados laboratoriais criados no servidor de integração");
@@ -127,10 +129,9 @@ public class SyncReport implements XLSColumnConstants {
 
     public void composeReceivedByDistrictSheet(List<LabResultSummary> viralLoaderResultSummaryList,
             Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
                 .format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
         Sheet sheet4 = workbook.createSheet("Recebidos por Distrito");
 
@@ -144,27 +145,29 @@ public class SyncReport implements XLSColumnConstants {
             cell.setCellValue(r.header());
             cell.setCellStyle(headerCellStyle);
         }
-        
+
         AtomicInteger counter4 = new AtomicInteger(2);
-        Map<String, Map<String, ViralResultStatistics>> groupedByDistrictAndFacilityCode = viralLoaderResultSummaryList.stream()
-                							.collect(Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
-                									Collectors.groupingBy(LabResultSummary::getTypeOfResult, ViralResultStatisticsCollector.toVlResultStatistics())));
-                
+        Map<String, Map<String, ViralResultStatistics>> groupedByDistrictAndFacilityCode = viralLoaderResultSummaryList
+                .stream()
+                .collect(Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
+                        Collectors.groupingBy(LabResultSummary::getTypeOfResult,
+                                ViralResultStatisticsCollector.toVlResultStatistics())));
+
         groupedByDistrictAndFacilityCode.entrySet().stream().forEach(e -> {
-        	Map<String, ViralResultStatistics> typeOfResultMap = e.getValue();
-        	typeOfResultMap.entrySet().stream().forEach(k -> {
-        		Row row = sheet4.createRow(counter4.getAndIncrement());
-        		createStatResultRow(workbook, row, e.getKey(), k.getValue());
-        	});
-                });
-        
+            Map<String, ViralResultStatistics> typeOfResultMap = e.getValue();
+            typeOfResultMap.entrySet().stream().forEach(k -> {
+                Row row = sheet4.createRow(counter4.getAndIncrement());
+                createStatResultRow(workbook, row, e.getKey(), k.getValue());
+            });
+        });
+
         ViralResultStatistics totals = new ViralResultStatistics();
         for (Map<String, ViralResultStatistics> district : groupedByDistrictAndFacilityCode.values()) {
             for (ViralResultStatistics stats : district.values()) {
                 totals.accumulate(stats);
             }
         }
-        
+
         Row row = sheet4.createRow(counter4.getAndIncrement());
         createStatLastResultRow(workbook, row, "Total", totals);
 
@@ -225,9 +228,8 @@ public class SyncReport implements XLSColumnConstants {
     }
 
     private void composeReceivedByNIDSheet(List<LabResults> viralLoadResults, Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().format(DATE_FORMAT);
+        String startDateFormatted = reportDateInterval.getStartDateTime().format(DATE_FORMAT);
+        String endDateFormatted = reportDateInterval.getEndDateTime().format(DATE_FORMAT);
         Sheet sheet2 = workbook.createSheet("Recebidos por NID");
         createFirstRow(workbook, sheet2, String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted), 9);
         // Create headers
@@ -249,10 +251,9 @@ public class SyncReport implements XLSColumnConstants {
 
     private void composeReceivedByUSSheet(List<LabResultSummary> viralLoaderResultSummary,
             Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
                 .format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
         Sheet sheet = workbook.createSheet("Recebidos por US");
         createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted),
@@ -373,7 +374,7 @@ public class SyncReport implements XLSColumnConstants {
                     cell.setCellValue(viralLoaderResult.getFacilityName());
                     break;
                 case TYPE_OF_RESULT:
-                    cell.setCellValue(viralLoaderResult.getTypeOfResult()); 
+                    cell.setCellValue(viralLoaderResult.getTypeOfResult());
                     break;
                 case TOTAL_RECEIVED:
                     cell.setCellValue(viralLoaderResult.getTotalReceived());
@@ -412,7 +413,7 @@ public class SyncReport implements XLSColumnConstants {
                     break;
 
                 case TYPE_OF_RESULT:
-                    cell.setCellValue(viralLoaderResult.getTypeOfResult()); 
+                    cell.setCellValue(viralLoaderResult.getTypeOfResult());
                     break;
                 case NID:
                     cell.setCellValue(viralLoaderResult.getNID());
@@ -496,7 +497,7 @@ public class SyncReport implements XLSColumnConstants {
                     cell.setCellValue(district);
                     break;
                 case TYPE_OF_RESULT:
-                    cell.setCellValue(viralResultStatistics.getTypeOfResult());  
+                    cell.setCellValue(viralResultStatistics.getTypeOfResult());
                     break;
                 case TOTAL_PROCESSED:
                     cell.setCellValue(viralResultStatistics.getProcessed());

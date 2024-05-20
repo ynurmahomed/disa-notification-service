@@ -11,7 +11,6 @@ import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -22,7 +21,6 @@ import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
-import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.MultipartUtil;
 import disa.notification.service.utils.SyncReport;
 import disa.notification.service.utils.TemplateEngineUtils;
@@ -35,10 +33,13 @@ public class MailServiceImpl implements MailService {
 
     private TemplateEngine templateEngine;
     private final MessageSource messageSource;
+    private DateInterval reportDateInterval;
 
-    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource) {
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource,
+            DateInterval reportDateInterval) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
+        this.reportDateInterval = reportDateInterval;
     }
 
     @Value("${spring.mail.username}")
@@ -55,10 +56,9 @@ public class MailServiceImpl implements MailService {
 
         // Prepare the evaluation context
         final Context ctx = new Context(new Locale("pt", "BR"));
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         ctx.setVariable("fromDate", startDateFormatted);
         ctx.setVariable("toDate", endDateFormatted);
@@ -69,7 +69,7 @@ public class MailServiceImpl implements MailService {
         final String htmlContent = this.templateEngine.process("index.html", ctx);
 
         String attachmentName = "Lab_Results_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
-        SyncReport syncReport = new SyncReport(messageSource);
+        SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
         String[] mailList = ip.getMailList().split(",");
         ByteArrayResource attachment = null;
         try {
@@ -87,10 +87,9 @@ public class MailServiceImpl implements MailService {
             throws MessagingException, UnsupportedEncodingException {
 
         Context ctx = new Context(new Locale("pt", "BR"));
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         ctx.setVariable("fromDate", startDateFormatted);
         ctx.setVariable("toDate", endDateFormatted);
