@@ -6,7 +6,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,7 +22,7 @@ public class MultipartUtil {
 	public static ResponseEntity<String> sendMultipartRequest(String url, String[] mailList,
 			String subject, String body,
 			byte[] fileBytes, String module, String attachmentName, String startDate,
-			String endDate) throws IOException {
+			String endDate, String repoLink) throws IOException {
 
 		RestTemplate restTemplate = new RestTemplate();
 
@@ -43,6 +42,8 @@ public class MultipartUtil {
 		emailDto.setModule(module);
 		emailDto.setStartDate(startDate);
 		emailDto.setEndDate(endDate);
+		emailDto.setEndDate(endDate);
+		emailDto.setRepoLink(repoLink);
 
 		HttpEntity<EmailDTO> jsonEntity = new HttpEntity<>(emailDto, jsonHeaders);
 		requestBody.add("data", jsonEntity);

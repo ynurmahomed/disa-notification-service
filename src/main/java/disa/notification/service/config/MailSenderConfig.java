@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -17,6 +18,7 @@ import disa.notification.service.service.impl.MailServiceImpl;
 import disa.notification.service.service.interfaces.MailService;
 
 @Configuration
+@EnableTransactionManagement 
 public class MailSenderConfig {
 
     @Bean

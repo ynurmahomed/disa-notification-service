@@ -8,6 +8,7 @@ public class EmailDTO {
 	private String module;
 	private String startDate;
 	private String endDate;
+	private String repoLink;
 	
 	public String[] getTo() {
 		return to;
@@ -44,5 +45,11 @@ public class EmailDTO {
 	}
 	public void setEndDate(String endDate) {
 		this.endDate = endDate;
+	}
+	public String getRepoLink() {
+		return repoLink;
+	}
+	public void setRepoLink(String repoLink) {
+		this.repoLink = repoLink;
 	}
 }

@@ -33,6 +33,9 @@ public class LabResultSenderTask {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
         log.info("A Compor Dados para envio");
 
+        // Custom query method that returns all implementing entities where the enabled field is true,
+        // and it uses the @EntityGraph annotation to ensure that related entities are loaded along with
+        // the query results
         List<ImplementingPartner> implementingPartners = ipRepository.findByEnabledTrue();
 
         for (ImplementingPartner implementingPartner : implementingPartners) {
@@ -40,7 +43,7 @@ public class LabResultSenderTask {
             sendEmailForImplementingPartner(implementingPartner);
         }
     }
-
+    
     private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
         List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromLastWeek(implementingPartner);
         List<LabResults> labResults = labLoaderService.findLabResultsFromLastWeek(implementingPartner);

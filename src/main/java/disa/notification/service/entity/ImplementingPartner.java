@@ -21,6 +21,8 @@ public class ImplementingPartner {
     private String orgName;
     private String mailList;
     private boolean enabled;
+    private String repoLink;
+    private String repoId;
 
     @OneToMany(cascade = CascadeType.DETACH)
     @JoinColumn(name = "implementingPartnerId")
@@ -65,6 +67,14 @@ public class ImplementingPartner {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+    
+    public String getRepoLink() {
+		return repoLink;
+	}
+    
+    public void setRepoLink(String repoLink) {
+		this.repoLink = repoLink;
+	}
 
     public Set<OrgUnit> getOrgUnits() {
         return orgUnits;
@@ -73,4 +83,12 @@ public class ImplementingPartner {
     public void setOrgUnits(Set<OrgUnit> orgUnits) {
         this.orgUnits = orgUnits;
     }
+    
+    public String getRepoId() {
+		return repoId;
+	}
+    
+    public void setRepoId(String repoId) {
+		this.repoId = repoId;
+	}
 }
