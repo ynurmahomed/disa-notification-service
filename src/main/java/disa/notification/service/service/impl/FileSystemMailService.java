@@ -19,7 +19,6 @@ import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
-import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.SyncReport;
 import lombok.extern.log4j.Log4j2;
 
@@ -30,9 +29,12 @@ import lombok.extern.log4j.Log4j2;
 public class FileSystemMailService implements MailService {
 
     private MessageSource messageSource;
+    
+    private DateInterval reportDateInterval;
 
-    public FileSystemMailService(MessageSource messageSource) {
+    public FileSystemMailService(MessageSource messageSource, DateInterval reportDateInterval) {
         this.messageSource = messageSource;
+        this.reportDateInterval = reportDateInterval;
     }
 
     public void sendEmail(ImplementingPartner ip, List<LabResultSummary> viralLoaders,
@@ -41,11 +43,10 @@ public class FileSystemMailService implements MailService {
             throws MessagingException, UnsupportedEncodingException {
 
         try {
-            DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            String start = formatter.format(lastWeekInterval.getStartDateTime());
-            String end = formatter.format(lastWeekInterval.getEndDateTime());
-            SyncReport syncReport = new SyncReport(messageSource);
+        	 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+             String start = formatter.format(reportDateInterval.getStartDateTime());
+             String end = formatter.format(reportDateInterval.getEndDateTime());
+            SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
             ByteArrayResource xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
                     pendingHealthFacilitySummaries);
             Path path = Paths.get("viral_Result_from_" + start + "_To_" + end + ".xlsx");

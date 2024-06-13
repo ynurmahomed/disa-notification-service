@@ -39,11 +39,14 @@ public class SyncReport implements XLSColumnConstants {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private MessageSource messageSource;
+    
+    private DateInterval reportDateInterval;
 
     private Map<String, String> dictionaries;
     
-    public SyncReport(MessageSource messageSource) {
+    public SyncReport(MessageSource messageSource, DateInterval reportDateInterval) {
         this.messageSource = messageSource;
+        this.reportDateInterval = reportDateInterval;
 
         Map<String, String> d = new LinkedHashMap<>(12);
         d.put("Total Recebidos", "Número total de resultados laboratoriais criados no servidor de integração");
@@ -127,10 +130,9 @@ public class SyncReport implements XLSColumnConstants {
 
     public void composeReceivedByDistrictSheet(List<LabResultSummary> viralLoaderResultSummaryList,
             Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
                 .format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
         Sheet sheet4 = workbook.createSheet("Recebidos por Distrito");
 
@@ -147,7 +149,7 @@ public class SyncReport implements XLSColumnConstants {
         
         AtomicInteger counter4 = new AtomicInteger(2);
         Map<String, Map<String, ViralResultStatistics>> groupedByDistrictAndFacilityCode = viralLoaderResultSummaryList.stream()
-                							.collect(Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
+                							.collect( Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
                 									Collectors.groupingBy(LabResultSummary::getTypeOfResult, ViralResultStatisticsCollector.toVlResultStatistics())));
                 
         groupedByDistrictAndFacilityCode.entrySet().stream().forEach(e -> {
@@ -225,9 +227,8 @@ public class SyncReport implements XLSColumnConstants {
     }
 
     private void composeReceivedByNIDSheet(List<LabResults> viralLoadResults, Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().format(DATE_FORMAT);
+        String startDateFormatted = reportDateInterval.getStartDateTime().format(DATE_FORMAT);
+        String endDateFormatted = reportDateInterval.getEndDateTime().format(DATE_FORMAT);
         Sheet sheet2 = workbook.createSheet("Recebidos por NID");
         createFirstRow(workbook, sheet2, String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted), 9);
         // Create headers
@@ -247,16 +248,11 @@ public class SyncReport implements XLSColumnConstants {
         }
     }
 
-    private void composeReceivedByUSSheet(List<LabResultSummary> viralLoaderResultSummary,
-            Workbook workbook) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
-                .format(DATE_FORMAT);
-        String endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate()
-                .format(DATE_FORMAT);
+    private void composeReceivedByUSSheet(List<LabResultSummary> viralLoaderResultSummary,Workbook workbook) {
+        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate().format(DATE_FORMAT);
+        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate().format(DATE_FORMAT);
         Sheet sheet = workbook.createSheet("Recebidos por US");
-        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted),
-                6);
+        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted),6);
         createSummaryRowHeader(workbook, sheet);
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream()

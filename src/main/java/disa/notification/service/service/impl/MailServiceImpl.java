@@ -40,6 +40,7 @@ public class MailServiceImpl implements MailService {
 
     private TemplateEngine templateEngine;
     private final MessageSource messageSource;
+    private DateInterval reportDateInterval;
     
     private final String startDateFormatted;
     private final String endDateFormatted;
@@ -47,13 +48,13 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private SeafileService seafileService;
 
-    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource) {
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
+        this.reportDateInterval = reportDateInterval;
         
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        this.startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        this.endDateFormatted = lastWeekInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        this.startDateFormatted = this.reportDateInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        this.endDateFormatted = this.reportDateInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
 
     @Value("${spring.mail.username}")
@@ -146,7 +147,7 @@ public class MailServiceImpl implements MailService {
 	private ByteArrayResource generateAttachment(List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
 			List<LabResults> unsyncronizedViralLoadResults,
 			List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {  
-			SyncReport syncReport = new SyncReport(messageSource);
+			SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
 			return syncReport.getViralResultXLS(viralLoaders, viralLoadResults, 
                                             				unsyncronizedViralLoadResults, 
                                             				pendingHealthFacilitySummaries);

@@ -11,7 +11,6 @@ import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
-import disa.notification.service.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -20,17 +19,15 @@ public class LabLoaderServiceImpl implements LabLoaderService {
     private final ViralLoaderRepository viralLoaderRepository;
 
     @Override
-    public List<LabResultSummary> findLabSummaryResultsFromLastWeek(ImplementingPartner ip) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        return viralLoaderRepository.findViralLoadResultSummary(lastWeekInterval.getStartDateTime(),
-                lastWeekInterval.getEndDateTime(), ip.getOrgUnitCodes());
+    public List<LabResultSummary> findLabSummaryResultsFromDateInterval(ImplementingPartner ip, DateInterval dateInterval) {
+        return viralLoaderRepository.findViralLoadResultSummary(dateInterval.getStartDateTime(),
+        		dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override
-    public List<LabResults> findLabResultsFromLastWeek(ImplementingPartner ip) {
-        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
-        return viralLoaderRepository.findViralLoadResults(lastWeekInterval.getStartDateTime(),
-                lastWeekInterval.getEndDateTime(), ip.getOrgUnitCodes());
+    public List<LabResults> findLabResultsFromDateInterval(ImplementingPartner ip, DateInterval dateInterval) {
+        return viralLoaderRepository.findViralLoadResults(dateInterval.getStartDateTime(),
+        		dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override

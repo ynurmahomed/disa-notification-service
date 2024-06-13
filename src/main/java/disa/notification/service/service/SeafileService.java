@@ -18,7 +18,7 @@ public class SeafileService {
 	
 	@Value("${disa.notifier.seafile.password}") 
 	private String password;
-	
+
 	public final String HEADER = "--header 'accept: application/json' ";
 	
 	public String getAuthenticationToken() throws Exception {
