@@ -1,21 +1,19 @@
 package disa.notification.service.utils;
 
 public interface XLSColumnConstants {
+
+    String[] DICTIONARY_HEADER = { "Variável", "Definição" };
+
+    String VIRAL_RESULT_SUMMARY_TITLE = "Resultados Recebidos no Servidor de Integração no Período de Domingo (%s) a Sábado (%s) da semana enterior por US";
+    String VIRAL_RESULT_TITLE = "Resultados Recebidos no Servidor de Integração no Periodo de Domingo (%s) a Sábado (%s) da semana anterior";
+    String RESULTS_PENDING_BY_NID_TITLE = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
+    String RESULTS_PENDING_BY_US_TITLE = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por US ";
+    String STATS_TITLE = "Resultados recebidos por Distrito no Período de Domingo (%s) a Sábado (%s) da semana anterior";
+
     int FIRST_ROW = 0;
     int FIRST_COL = 0;
     int SECOND_ROW = 1;
     int THIRD_ROW = 2;
-    int COL0_REQUEST_ID = 0;
-    int COL1_NID = 1;
-    int COL2_DISTRICT = 2;
-    int COL3_HEALTH_FACILITY_CODE = 3;
-    int COL4_HEALTH_FACILITY_NAME = 4;
-    int COL5_CREATED_AT = 5;
-    int COL6_UPDATED_AT = 6;
-    int COL7_VIRAL_RESULT_STATUS = 7;
-    int COL8_VIRAL_RESULT_STATUS_CAUSE = 8;
-
-    int COL9_VIRAL_RESULT_STATUS_CAUSE = 9;
 
     enum ResultsReceivedByNid {
         REQUEST_ID("ID da Requisição"),
@@ -29,6 +27,7 @@ public interface XLSColumnConstants {
         VIRAL_RESULT_STATUS("Estado"),
         NOT_PROCESSING_CAUSE("Motivo de Não envio"),
         OBS("Observacoes");
+
         private final String header;
 
         ResultsReceivedByNid(String header) {
@@ -41,6 +40,7 @@ public interface XLSColumnConstants {
     }
 
     enum ResultsByHFSummary {
+        PROVINCE("Província"),
         DISTRICT("Distrito"),
         HEALTH_FACILITY_CODE("Código da US"),
         HEALTH_FACILITY_NAME("Nome da US"),
@@ -52,6 +52,7 @@ public interface XLSColumnConstants {
         NOT_PROCESSED_NID_NOT_FOUND("No. NID nao encontrado"),
         NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
         NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado");
+
         private final String header;
 
         ResultsByHFSummary(String header) {
@@ -63,45 +64,27 @@ public interface XLSColumnConstants {
         }
     }
 
-    int COL0_DISTRICT = 0;
-    int COL1_HEALTH_FACILITY_CODE = 1;
-    int COL2_HEALTH_FACILITY_NAME = 2;
-    int COL3_TOTAL_RECEIVED = 3;
-    int COL4_TOTAL_PROCESSED = 4;
-    int COL5_TOTAL_PENDING= 5;
-    int COL6_NOT_PROCESSED_NO_RESULT= 6;
-    int COL7_NOT_PROCESSED_NID_NOT_FOUND= 7;
-    int COL8_NOT_PROCESSED_DUPLICATED_NID=8;
-    int COL9_NOT_PROCESSED_DUPLICATED_REQUEST_ID=9;
-    int COL10_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 10;
+    enum ResultsPendingByUs {
+        PROVINCE("Província"),
+        DISTRICT("Distrito"),
+        US_CODE("Código da US"),
+        US_NAME("Nome da US"),
+        TOTAL_PENDING("No. Resultados Pendentes"),
+        LAST_SYNC("Data da Última Sincronização");
 
-    String[] UNSYNCRONIZED_VIRAL_RESULTS_HEADER = {
-        "ID da Requisição",
-        "NID",
-        "Distrito",
-        "Codigo da US",
-        "Nome da US",
-        "Data de Entrada",
-        "Estado"
-    };
-    int COL5_SENT_DATE = 5;
-    int COL6_STATUS = 6;
+        private final String header;
 
-    String VIRAL_RESULT_SUMMARY_TITLE = "Resultados Recebidos no Servidor de Integração no Período de Domingo (%s) a Sábado (%s) da semana enterior por US";
-    String VIRAL_RESULT_TITLE = "Resultados Recebidos no Servidor de Integração no Periodo de Domingo (%s) a Sábado (%s) da semana anterior";
-    String NOT_SYNCRONIZED_VIRAL_RESULTS = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por NID (Cumulativo)";
-    String PENDING_VIRAL_RESULT_SUMMARY = "Resultados Pendentes no Servidor de Integração há mais de 48 horas por US ";
+        ResultsPendingByUs(String header) {
+            this.header = header;
+        }
 
-    String STATS_TITLE = "Resultados recebidos por Distrito no Período de Domingo (%s) a Sábado (%s) da semana anterior";
-
-    String[] PENDING_VIRAL_RESULT_SUMMARY_HEADER = { "Distrito", "Código da US", "Nome da US", "No. Resultados Pendentes",
-            "Data da Última Sincronização" };
-    int COL3_TOTAL_PENDING = 3;
-    int COL4_LAST_SYNC_DATE = 4;
-
-    String[] DICTIONARY_HEADER = { "Variável", "Definição" };
+        public String header() {
+            return header;
+        }
+    }
 
     enum ResultsByDistrictSummary {
+        PROVINCE("Província"),
         DISTRICT("Distrito"),
         TYPE_OF_RESULT("Tipo de Resultado"),
         TOTAL_PROCESSED("No. Processados "),
@@ -113,10 +96,10 @@ public interface XLSColumnConstants {
         NOT_PROCESSED_NID_NOT_FOUND("No. NID não encontrado"),
         PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND("% NID não encontrado"),
         NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
-        PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID ("% NID duplicado"),
-        NOT_PROCESSED_DUPLICATED_REQUEST_ID ("No. ID da requisição duplicado"),
-        PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID ("% ID da requisição duplicado"),
-        TOTAL_RECEIVED ("Total Recebidos");
+        PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID("% NID duplicado"),
+        NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado"),
+        PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID("% ID da requisição duplicado"),
+        TOTAL_RECEIVED("Total Recebidos");
 
         private final String header;
 
@@ -129,54 +112,23 @@ public interface XLSColumnConstants {
         }
     }
 
-    String[] VIRAL_STAT_HEADER = {
-            "Distrito",
-            "No. Processados ",
-            "% Processados ",
-            "No. Pendentes",
-            "% Pendentes ",
-            "No. Sem Resultados",
-            "% Sem Resultados ",
-            "No. NID não encontrado",
-            "% NID não encontrado",
-            "No. NID duplicado",
-            "% NID duplicado",
-            "No. ID da requisição duplicado",
-            "% ID da requisição duplicado",
-            "No. Sinalizado para Revisão",
-            "% Sinalizado para Revisão",
-            "Total Recebidos" };
+    enum ResultsPendingByNid {
+        REQUEST_ID("ID da Requisição"),
+        NID("NID"),
+        DISTRICT("Distrito"),
+        HEALTH_FACILITY_CODE("Codigo da US"),
+        HEALTH_FACILITY_NAME("Nome da US"),
+        SENT_DATE("Data de Entrada"),
+        STATUS("Estado");
 
-    int STAT0_DISTRICT = 0;
+        private final String header;
 
-    int STAT1_TOTAL_PROCESSED = 1;
+        ResultsPendingByNid(String header) {
+            this.header = header;
+        }
 
-    int STAT2_PERCENTAGE_PROCESSED = 2;
-
-    int STAT3_TOTAL_PENDING = 3;
-
-    int STAT4_PERCENTAGE_PENDING = 4;
-
-    int STAT5_NOT_PROCESSED_NO_RESULT = 5;
-
-    int STAT6_PERCENTAGE_NOT_PROCESSED_NO_RESULT = 6;
-
-    int STAT7_NOT_PROCESSED_NID_NOT_FOUND = 7;
-
-    int STAT8_PERCENTAGE_NOT_PROCESSED_NID_NOT_FOUND = 8;
-
-    int STAT9_NOT_PROCESSED_DUPLICATED_NID = 9;
-
-    int STAT10_PERCENTAGE_NOT_PROCESSED_DUPLICATED_NID = 10;
-
-    int STAT11_NOT_PROCESSED_DUPLICATED_REQUEST_ID = 11;
-
-    int STAT12_PERCENTAGE_NOT_PROCESSED_DUPLICATED_REQUEST_ID = 12;
-
-    int STAT13_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 13;
-
-    int STAT14_PERCENTAGE_NOT_PROCESSED_FLAGGED_FOR_REVIEW = 14;
-
-    int STAT15_TOTAL_RECEIVED = 15;
-
+        public String header() {
+            return header;
+        }
+    }
 }

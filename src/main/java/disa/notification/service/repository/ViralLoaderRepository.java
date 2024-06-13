@@ -23,7 +23,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='INVALID_RESULT' THEN 1 END),0) AS notProcessedInvalidResult, "+
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='DUPLICATE_NID' THEN 1 END),0) AS notProcessedDuplicateNid, "+
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='DUPLICATED_REQUEST_ID' THEN 1 END),0) AS notProcessedDuplicatedRequestId "+
-                " from VlData where RequestingFacilityCode in (:ouCodes) AND  CREATED_AT BETWEEN :startDateTime AND :endDateTime AND ENTITY_STATUS='ACTIVE' group by RequestingProvinceName ,RequestingDistrictName,RequestingFacilityCode, TypeOfResult",nativeQuery = true)
+                "from VlData where RequestingFacilityCode in (:ouCodes) AND  CREATED_AT BETWEEN :startDateTime AND :endDateTime AND ENTITY_STATUS='ACTIVE' group by RequestingProvinceName ,RequestingDistrictName,RequestingFacilityCode, TypeOfResult",nativeQuery = true)
     List<LabResultSummary> findViralLoadResultSummary(@Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime,@Param("ouCodes") Set<String> orgUnitCodes);
 
     @Query(value = "SELECT RequestId as requestId, UNIQUEID as nid, FIRSTNAME as firstName, SURNAME as lastName,RequestingDistrictName as requestingDistrictName,RequestingFacilityName as requestingFacilityName," +
@@ -40,7 +40,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
     @Query(value = "select VLPendente.RequestingProvinceName ,VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending " +
             ",lastSync.lastSyncDate from (SELECT RequestingProvinceName ,RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,MAX(RequestingFacilityName) as facilityName,Count(RequestingDistrictName) as  totalPending " +
             "   from VlData where RequestingFacilityCode in (:ouCodes) AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 AND ENTITY_STATUS = 'ACTIVE' group by RequestingProvinceName ,RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
-            "  left join (SELECT RequestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingFacilityCode in (:ouCodes) AND ENTITY_STATUS = 'ACTIVE' AND TypeOfResult IN ('HIVVL','CD4', 'TBLAM')" +
+            "  left join (SELECT RequestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingFacilityCode in (:ouCodes) AND ENTITY_STATUS = 'ACTIVE' " +
             "  group by RequestingDistrictName,RequestingFacilityCode ) lastSync on VLPendente.healthFacilityLabCode=lastSync.healthFacilityLabCode and VLPendente.requestingDistrictName=lastSync.RequestingDistrictName",nativeQuery = true)
     List<PendingHealthFacilitySummary> findUnsincronizedHealthFacilities(@Param("ouCodes") Set<String> orgUnitCodes);
 }
