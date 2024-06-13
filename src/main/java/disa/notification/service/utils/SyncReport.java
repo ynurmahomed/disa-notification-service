@@ -1,14 +1,16 @@
 package disa.notification.service.utils;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -147,29 +149,26 @@ public class SyncReport implements XLSColumnConstants {
         }
 
         AtomicInteger counter4 = new AtomicInteger(2);
-        Map<String, Map<String, ViralResultStatistics>> groupedByDistrictAndFacilityCode = viralLoaderResultSummaryList
+        Map<String, Map<String, Map<String, ViralResultStatistics>>> provinces = viralLoaderResultSummaryList
                 .stream()
-                .collect(Collectors.groupingBy(LabResultSummary::getRequestingDistrictName,
-                        Collectors.groupingBy(LabResultSummary::getTypeOfResult,
-                                ViralResultStatisticsCollector.toVlResultStatistics())));
+                .collect(groupingBy(LabResultSummary::getRequestingProvinceName,
+                        groupingBy(LabResultSummary::getRequestingDistrictName,
+                                groupingBy(LabResultSummary::getTypeOfResult,
+                                        ViralResultStatisticsCollector.toVlResultStatistics()))));
 
-        groupedByDistrictAndFacilityCode.entrySet().stream().forEach(e -> {
-            Map<String, ViralResultStatistics> typeOfResultMap = e.getValue();
-            typeOfResultMap.entrySet().stream().forEach(k -> {
-                Row row = sheet4.createRow(counter4.getAndIncrement());
-                createStatResultRow(workbook, row, e.getKey(), k.getValue());
+        ViralResultStatistics totals = new ViralResultStatistics();
+        provinces.forEach((province, districts) -> {
+            districts.forEach((district, typesOfResult) -> {
+                typesOfResult.forEach((type, stats) -> {
+                    Row row = sheet4.createRow(counter4.getAndIncrement());
+                    createStatResultRow(workbook, row, province, district, stats);
+                    totals.accumulate(stats);
+                });
             });
         });
 
-        ViralResultStatistics totals = new ViralResultStatistics();
-        for (Map<String, ViralResultStatistics> district : groupedByDistrictAndFacilityCode.values()) {
-            for (ViralResultStatistics stats : district.values()) {
-                totals.accumulate(stats);
-            }
-        }
-
         Row row = sheet4.createRow(counter4.getAndIncrement());
-        createStatLastResultRow(workbook, row, "Total", totals);
+        createStatLastResultRow(workbook, row, totals);
 
         sheet4.autoSizeColumn(0);
         sheet4.autoSizeColumn(1);
@@ -187,34 +186,49 @@ public class SyncReport implements XLSColumnConstants {
         sheet4.autoSizeColumn(13);
         sheet4.autoSizeColumn(14);
         sheet4.autoSizeColumn(15);
+        sheet4.autoSizeColumn(16);
     }
 
     private void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
             Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Pendentes por US");
-        createFirstRow(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY, 4);
-        createRowHeader(workbook, sheet4, PENDING_VIRAL_RESULT_SUMMARY_HEADER);
+        createFirstRow(workbook, sheet4, RESULTS_PENDING_BY_US_TITLE, 4);
+        // Create headers
+        Row headerRow = sheet4.createRow(SECOND_ROW);
+        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        for (ResultsPendingByUs r : ResultsPendingByUs.values()) {
+            Cell cell = headerRow.createCell(r.ordinal());
+            cell.setCellValue(r.header());
+            cell.setCellStyle(headerCellStyle);
+        }
         AtomicInteger counter4 = new AtomicInteger(2);
-        pendingViralResultSummaries.stream()
-                .forEach(pendingViralResultSummary -> {
-                    Row row = sheet4.createRow(counter4.getAndIncrement());
-                    createPendingViralResultSummaryRow(row, pendingViralResultSummary);
-                });
+        pendingViralResultSummaries.forEach(pendingViralResultSummary -> {
+            Row row = sheet4.createRow(counter4.getAndIncrement());
+            createPendingViralResultSummaryRow(row, pendingViralResultSummary);
+        });
         sheet4.autoSizeColumn(0);
         sheet4.autoSizeColumn(1);
         sheet4.autoSizeColumn(2);
         sheet4.autoSizeColumn(3);
         sheet4.autoSizeColumn(4);
+        sheet4.autoSizeColumn(5);
     }
 
     private void composePendingByNIDSheet(List<LabResults> unsyncronizedViralLoadResults,
             Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("Pendentes por NID");
-        createFirstRow(workbook, sheet3, NOT_SYNCRONIZED_VIRAL_RESULTS, 7);
-        createRowHeader(workbook, sheet3, UNSYNCRONIZED_VIRAL_RESULTS_HEADER);
-        int counter3 = 2;
+        createFirstRow(workbook, sheet3, RESULTS_PENDING_BY_NID_TITLE, 7);
+        // Create headers
+        Row headerRow = sheet3.createRow(SECOND_ROW);
+        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        for (ResultsPendingByNid r : ResultsPendingByNid.values()) {
+            Cell cell = headerRow.createCell(r.ordinal());
+            cell.setCellValue(r.header());
+            cell.setCellStyle(headerCellStyle);
+        }
+        int rownum = 2;
         for (LabResults viralResult : unsyncronizedViralLoadResults) {
-            Row row = sheet3.createRow(counter3++);
+            Row row = sheet3.createRow(rownum++);
             createUnsyncronizedViralResultRow(row, viralResult);
         }
         sheet3.autoSizeColumn(0);
@@ -276,6 +290,7 @@ public class SyncReport implements XLSColumnConstants {
         sheet.autoSizeColumn(8);
         sheet.autoSizeColumn(9);
         sheet.autoSizeColumn(10);
+        sheet.autoSizeColumn(11);
     }
 
     private void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
@@ -303,16 +318,6 @@ public class SyncReport implements XLSColumnConstants {
         // Merge not processed header
         sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 10));
 
-    }
-
-    private void createRowHeader(Workbook workbook, Sheet sheet, String[] columnHeaders) {
-        Row headerRow = sheet.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
-        for (int col = 0; col < columnHeaders.length; col++) {
-            Cell cell = headerRow.createCell(col);
-            cell.setCellValue(columnHeaders[col]);
-            cell.setCellStyle(headerCellStyle);
-        }
     }
 
     private CellStyle getBoldStyle(Workbook workbook) {
@@ -364,6 +369,9 @@ public class SyncReport implements XLSColumnConstants {
         for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
             Cell cell = row.createCell(byHfSummary.ordinal());
             switch (byHfSummary) {
+                case PROVINCE:
+                    cell.setCellValue(viralLoaderResult.getRequestingProvinceName());
+                    break;
                 case DISTRICT:
                     cell.setCellValue(viralLoaderResult.getRequestingDistrictName());
                     break;
@@ -439,14 +447,14 @@ public class SyncReport implements XLSColumnConstants {
                 case VIRAL_RESULT_STATUS:
                     cell.setCellValue(
                             messageSource.getMessage("disa.viraLoadStatus." + viralLoaderResult.getViralLoadStatus(),
-                                    new String[] {}, null));
+                                    new String[] {}, Locale.getDefault()));
                     break;
                 case NOT_PROCESSING_CAUSE:
                     String cellValue = "";
                     if (viralLoaderResult.getNotProcessingCause() != null) {
                         cellValue = messageSource.getMessage(
                                 "disa.notProcessingCause." + viralLoaderResult.getNotProcessingCause(), new String[] {},
-                                null);
+                                Locale.getDefault());
                     }
                     cell.setCellValue(cellValue);
                     break;
@@ -466,33 +474,81 @@ public class SyncReport implements XLSColumnConstants {
 
     private void createPendingViralResultSummaryRow(Row row,
             PendingHealthFacilitySummary pendingViralResultSummary) {
-        row.createCell(COL0_DISTRICT).setCellValue(pendingViralResultSummary.getRequestingDistrictName());
-        row.createCell(COL1_HEALTH_FACILITY_CODE).setCellValue(pendingViralResultSummary.getHealthFacilityLabCode());
-        row.createCell(COL2_HEALTH_FACILITY_NAME).setCellValue(pendingViralResultSummary.getFacilityName());
-        row.createCell(COL3_TOTAL_PENDING).setCellValue(pendingViralResultSummary.getTotalPending());
-        row.createCell(COL4_LAST_SYNC_DATE)
-                .setCellValue(pendingViralResultSummary.getLastSyncDate() != null ? pendingViralResultSummary
-                        .getLastSyncDate().toLocalDate().format(DATE_FORMAT) : "");
+
+        for (ResultsPendingByUs pending : ResultsPendingByUs.values()) {
+            Cell cell = row.createCell(pending.ordinal());
+            switch (pending) {
+                case PROVINCE:
+                    cell.setCellValue(pendingViralResultSummary.getRequestingProvinceName());
+                    break;
+                case DISTRICT:
+                    cell.setCellValue(pendingViralResultSummary.getRequestingDistrictName());
+                    break;
+                case US_CODE:
+                    cell.setCellValue(pendingViralResultSummary.getHealthFacilityLabCode());
+                    break;
+                case US_NAME:
+                    cell.setCellValue(pendingViralResultSummary.getFacilityName());
+                    break;
+                case TOTAL_PENDING:
+                    cell.setCellValue(pendingViralResultSummary.getTotalPending());
+                    break;
+                case LAST_SYNC:
+                    cell.setCellValue(pendingViralResultSummary.getLastSyncDate() != null ? pendingViralResultSummary
+                            .getLastSyncDate().toLocalDate().format(DATE_FORMAT) : "");
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
 
     private void createUnsyncronizedViralResultRow(Row row, LabResults viralLoaderResult) {
-        row.createCell(COL0_REQUEST_ID).setCellValue(viralLoaderResult.getRequestId());
-        row.createCell(COL1_NID).setCellValue(viralLoaderResult.getNID());
-        row.createCell(COL2_DISTRICT).setCellValue(viralLoaderResult.getRequestingDistrictName());
-        row.createCell(COL3_HEALTH_FACILITY_CODE).setCellValue(viralLoaderResult.getHealthFacilityLabCode());
-        row.createCell(COL4_HEALTH_FACILITY_NAME).setCellValue(viralLoaderResult.getRequestingFacilityName());
-        row.createCell(COL5_SENT_DATE).setCellValue(
-                viralLoaderResult.getCreatedAt().toLocalDate().format(DATE_FORMAT));
-        row.createCell(COL6_STATUS).setCellValue(messageSource
-                .getMessage("disa.viraLoadStatus." + viralLoaderResult.getViralLoadStatus(), new String[] {}, null));
+
+        for (ResultsPendingByNid pendingByNid : ResultsPendingByNid.values()) {
+            Cell cell = row.createCell(pendingByNid.ordinal());
+            switch (pendingByNid) {
+                case REQUEST_ID:
+                    cell.setCellValue(viralLoaderResult.getRequestId());
+                    break;
+                case NID:
+                    cell.setCellValue(viralLoaderResult.getNID());
+                    break;
+                case DISTRICT:
+                    cell.setCellValue(viralLoaderResult.getRequestingDistrictName());
+                    break;
+                case HEALTH_FACILITY_CODE:
+                    cell.setCellValue(viralLoaderResult.getHealthFacilityLabCode());
+                    break;
+                case HEALTH_FACILITY_NAME:
+                    cell.setCellValue(viralLoaderResult.getRequestingFacilityName());
+                    break;
+                case SENT_DATE:
+                    cell.setCellValue(
+                            viralLoaderResult.getCreatedAt().toLocalDate().format(DATE_FORMAT));
+                    break;
+                case STATUS:
+                    cell.setCellValue(messageSource
+                            .getMessage("disa.viraLoadStatus." + viralLoaderResult.getViralLoadStatus(),
+                                    new String[] {}, Locale.getDefault()));
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
 
-    private void createStatResultRow(Workbook workbook, Row row, String district,
+    private void createStatResultRow(Workbook workbook, Row row, String province, String district,
             ViralResultStatistics viralResultStatistics) {
 
         for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
             Cell cell = row.createCell(r.ordinal());
             switch (r) {
+                case PROVINCE:
+                    cell.setCellValue(province);
+                    break;
                 case DISTRICT:
                     cell.setCellValue(district);
                     break;
@@ -550,15 +606,13 @@ public class SyncReport implements XLSColumnConstants {
         }
     }
 
-    private void createStatLastResultRow(Workbook workbook, Row row,
-            String district,
-            ViralResultStatistics viralResultStatistics) {
+    private void createStatLastResultRow(Workbook workbook, Row row, ViralResultStatistics viralResultStatistics) {
 
         for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
             Cell cell = row.createCell(r.ordinal());
             switch (r) {
-                case DISTRICT:
-                    cell.setCellValue(district);
+                case PROVINCE:
+                    cell.setCellValue("Total");
                     cell.setCellStyle(getTotalsCellStyle(workbook));
                     break;
                 case TOTAL_PROCESSED:

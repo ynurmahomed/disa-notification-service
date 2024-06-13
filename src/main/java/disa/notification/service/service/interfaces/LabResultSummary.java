@@ -1,6 +1,7 @@
 package disa.notification.service.service.interfaces;
 
 public interface LabResultSummary {
+    String getRequestingProvinceName();
     String getRequestingDistrictName();
     String getHealthFacilityLabCode();
     String getTypeOfResult();
