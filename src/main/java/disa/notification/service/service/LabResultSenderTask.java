@@ -17,6 +17,7 @@ import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
+import disa.notification.service.utils.DateInterval;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -27,10 +28,12 @@ public class LabResultSenderTask {
     private final LabLoaderService labLoaderService;
     private final ImplementingPartnerRepository ipRepository;
     private final MailService mailService;
+    private final DateInterval reportDateInterval;
 
     @Scheduled(cron = "${task.cron}")
     public void sendLabResultReport() {
         log.info("Iniciando a task de Sincronizacao de Cargas virais");
+        log.info("Report date interval {}", reportDateInterval);
         log.info("A Compor Dados para envio");
 
         List<ImplementingPartner> implementingPartners = ipRepository.findByEnabledTrue();
@@ -42,14 +45,19 @@ public class LabResultSenderTask {
     }
 
     private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
-        List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromLastWeek(implementingPartner);
-        List<LabResults> labResults = labLoaderService.findLabResultsFromLastWeek(implementingPartner);
-        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService.findLabResultsPendingMoreThan2Days(implementingPartner);
-        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService.findPendingHealthFacilitySummary(implementingPartner);
+        List<LabResultSummary> labResultSummary = labLoaderService
+                .findLabSummaryResultsFromDateInterval(implementingPartner, reportDateInterval);
+        List<LabResults> labResults = labLoaderService.findLabResultsFromDateInterval(implementingPartner,
+                reportDateInterval);
+        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService
+                .findLabResultsPendingMoreThan2Days(implementingPartner);
+        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService
+                .findPendingHealthFacilitySummary(implementingPartner);
 
         try {
             if (!labResultSummary.isEmpty() || !pendingResultsForMoreThan2Days.isEmpty()) {
-                mailService.sendEmail(implementingPartner, labResultSummary, labResults, pendingResultsForMoreThan2Days, pendingHealthFacilitySummaries);
+                mailService.sendEmail(implementingPartner, labResultSummary, labResults, pendingResultsForMoreThan2Days,
+                        pendingHealthFacilitySummaries);
             } else {
                 mailService.sendNoResultsEmail(implementingPartner);
             }

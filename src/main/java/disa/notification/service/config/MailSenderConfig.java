@@ -15,6 +15,8 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 import disa.notification.service.service.impl.FileSystemMailService;
 import disa.notification.service.service.impl.MailServiceImpl;
 import disa.notification.service.service.interfaces.MailService;
+import disa.notification.service.utils.DateInterval;
+import disa.notification.service.utils.DateTimeUtils;
 
 @Configuration
 public class MailSenderConfig {
@@ -40,13 +42,26 @@ public class MailSenderConfig {
 
     @Bean
     @ConditionalOnProperty(name = "app.mailservice", havingValue = "javaMail")
-    public MailService mailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource) {
-        return new MailServiceImpl(templateEngine, messageSource);
+    public MailService mailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource,
+            DateInterval reportDateInterval) {
+        return new MailServiceImpl(templateEngine, messageSource, reportDateInterval);
     }
 
     @Bean
     @ConditionalOnProperty(name = "app.mailservice", havingValue = "fileSystem")
-    MailService fileSystemMailService(MessageSource messageSource) {
-        return new FileSystemMailService(messageSource);
+    MailService fileSystemMailService(MessageSource messageSource, DateInterval reportDateInterval) {
+        return new FileSystemMailService(messageSource, reportDateInterval);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "app.reportDateInterval", havingValue = "lastWeek")
+    DateInterval lastWeekDateInterval() {
+        return DateTimeUtils.getLastWeekInterVal();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "app.reportDateInterval", havingValue = "currentWeek")
+    DateInterval currentWeekDateInterval() {
+        return DateTimeUtils.getCurrentWeekInterVal();
     }
 }
