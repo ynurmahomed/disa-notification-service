@@ -55,7 +55,8 @@ public class LabResultSenderTask {
 
         try {
             if (!labResultSummary.isEmpty() || !pendingResultsForMoreThan2Days.isEmpty()) {
-                mailService.sendEmail(implementingPartner, labResultSummary, labResults, pendingResultsForMoreThan2Days, pendingHealthFacilitySummaries);
+                mailService.sendEmail(implementingPartner, labResultSummary, labResults, pendingResultsForMoreThan2Days,
+                        pendingHealthFacilitySummaries);
             } else {
                 mailService.sendNoResultsEmail(implementingPartner);
             }

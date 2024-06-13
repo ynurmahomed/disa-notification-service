@@ -26,7 +26,6 @@ import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
-import disa.notification.service.utils.DateTimeUtils;
 import disa.notification.service.utils.ExcelUtil;
 import disa.notification.service.utils.MultipartUtil;
 import disa.notification.service.utils.SyncReport;
@@ -41,7 +40,6 @@ public class MailServiceImpl implements MailService {
     private TemplateEngine templateEngine;
     private final MessageSource messageSource;
     private DateInterval reportDateInterval;
-    
     private final String startDateFormatted;
     private final String endDateFormatted;
     
@@ -72,7 +70,6 @@ public class MailServiceImpl implements MailService {
     	Context ctx = prepareEmailContext(viralLoaders);
     	String htmlContent = generateHtmlContent(ctx);
     	String attachmentName = generateAttachmentName();
-        
         try {
         	ByteArrayResource attachment = generateAttachment(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
                     pendingHealthFacilitySummaries);
