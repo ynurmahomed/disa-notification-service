@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 public class VlResultSummaryImpl implements LabResultSummary {
+    private String requestingProvinceName;
     private String requestingDistrictName;
     private String healthFacilityLabCode;
     private String typeOfResult;
