@@ -92,24 +92,19 @@ public class MailServiceImpl implements MailService {
         String[] mailList = ip.getMailListItems();
         templateEngine = TemplateEngineUtils.getTemplateEngine();
         final String htmlContent = this.templateEngine.process("noResults.html", ctx);
-        sendEmailHelper(mailList, htmlContent, null, "notification", null, startDateFormatted, endDateFormatted, ip.getRepoLink()); 
+        sendEmailHelper(mailList, htmlContent, "notification", null, startDateFormatted, endDateFormatted, ip.getRepoLink()); 
     }
 
-    private void sendEmailHelper(String[] mailList, String htmlContent, ByteArrayResource attachment, String module,
+    private void sendEmailHelper(String[] mailList, String htmlContent, String module,
             String attachmentName, String startDateFormatted, String endDateFormatted, String repoLink) {
 
         String subject = String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted);
-        byte[] byteArray = null;
-
         ResponseEntity<String> emailResult = null;
-        if (attachment != null) {
-            byteArray = attachment.getByteArray();
-        }
 
         try {
 
             emailResult = MultipartUtil.sendMultipartRequest(disaNotifierEndPoint, mailList,
-                    subject, htmlContent, byteArray, module, attachmentName, startDateFormatted, endDateFormatted, repoLink);
+                    subject, htmlContent, module, attachmentName, startDateFormatted, endDateFormatted, repoLink);
 
             if (emailResult != null && emailResult.getStatusCode().is2xxSuccessful()) {
                 log.info("Email sent successfully");
@@ -154,7 +149,7 @@ public class MailServiceImpl implements MailService {
 		try {
 			ExcelUtil.saveWorkbook(attachment, attachmentName); 
 			seafileService.uploadFile(ip.getRepoId(),attachmentName);
-            sendEmailHelper(mailList, htmlContent, attachment, "notification", 
+            sendEmailHelper(mailList, htmlContent, "notification", 
                     											attachmentName, 
                     											startDateFormatted, 
                     											endDateFormatted, 
