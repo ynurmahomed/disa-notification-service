@@ -10,7 +10,6 @@ import java.util.Locale;
 
 import javax.mail.MessagingException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
@@ -42,14 +41,14 @@ public class MailServiceImpl implements MailService {
     private DateInterval reportDateInterval;
     private final String startDateFormatted;
     private final String endDateFormatted;
+    private final SeafileService seafileService;
     
-    @Autowired
-    private SeafileService seafileService;
-
-    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval) {
+    
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval, SeafileService seafileService) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
         this.reportDateInterval = reportDateInterval;
+        this.seafileService = seafileService;
         
         this.startDateFormatted = this.reportDateInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         this.endDateFormatted = this.reportDateInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));

@@ -12,6 +12,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
+import disa.notification.service.service.SeafileService;
 import disa.notification.service.service.impl.FileSystemMailService;
 import disa.notification.service.service.impl.MailServiceImpl;
 import disa.notification.service.service.interfaces.MailService;
@@ -26,6 +27,11 @@ public class MailSenderConfig {
 		final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
 		templateEngine.addTemplateResolver(htmlTemplateResolver());
 		return templateEngine;
+	}
+	
+	@Bean
+	public SeafileService seafileService() {
+		return new SeafileService();
 	}
 
 	private ITemplateResolver htmlTemplateResolver() {
@@ -43,8 +49,8 @@ public class MailSenderConfig {
 	@Bean
 	@ConditionalOnProperty(name = "app.mailservice", havingValue = "javaMail")
 	public MailService mailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource,
-			DateInterval reportDateInterval) {
-		return new MailServiceImpl(templateEngine, messageSource, reportDateInterval);
+			DateInterval reportDateInterval, SeafileService seafileService) {
+		return new MailServiceImpl(templateEngine, messageSource, reportDateInterval, seafileService);
 	}
 
 	@Bean
