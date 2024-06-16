@@ -28,11 +28,6 @@ public class MailSenderConfig {
 		templateEngine.addTemplateResolver(htmlTemplateResolver());
 		return templateEngine;
 	}
-	
-	@Bean
-	public SeafileService seafileService() {
-		return new SeafileService();
-	}
 
 	private ITemplateResolver htmlTemplateResolver() {
 		final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();

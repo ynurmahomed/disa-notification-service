@@ -20,7 +20,7 @@ public class MultipartUtil {
 
 	public static ResponseEntity<String> sendMultipartRequest(String url, String[] mailList,
 			String subject, String body, String module, String attachmentName, String startDate,
-			String endDate, String repoLink) throws IOException {
+			String endDate, String repoLink, Boolean resultFlag) throws IOException {
 
 		RestTemplate restTemplate = new RestTemplate();
 
@@ -42,6 +42,7 @@ public class MultipartUtil {
 		emailDto.setEndDate(endDate);
 		emailDto.setEndDate(endDate);
 		emailDto.setRepoLink(repoLink);
+		emailDto.setResultFlag(resultFlag); 
 
 		HttpEntity<EmailDTO> jsonEntity = new HttpEntity<>(emailDto, jsonHeaders);
 		requestBody.add("data", jsonEntity);

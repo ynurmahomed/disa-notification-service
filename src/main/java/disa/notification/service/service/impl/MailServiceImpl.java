@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -43,7 +42,6 @@ public class MailServiceImpl implements MailService {
     private final String endDateFormatted;
     private final SeafileService seafileService;
     
-    
     public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval, SeafileService seafileService) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
@@ -60,7 +58,6 @@ public class MailServiceImpl implements MailService {
     @Value("${disa.notifier.rest.endpoint}")
     private String disaNotifierEndPoint;
 
-    @Transactional
     public void sendEmail(final ImplementingPartner ip,
             								final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
             								List<LabResults> unsyncronizedViralLoadResults,
@@ -92,11 +89,11 @@ public class MailServiceImpl implements MailService {
         String[] mailList = ip.getMailListItems();
         templateEngine = TemplateEngineUtils.getTemplateEngine();
         final String htmlContent = this.templateEngine.process("noResults.html", ctx);
-        sendEmailHelper(mailList, htmlContent, "notification", null, startDateFormatted, endDateFormatted, ip.getRepoLink()); 
+        sendEmailHelper(mailList, htmlContent, "notification", null, startDateFormatted, endDateFormatted, ip.getRepoLink(),Boolean.FALSE); 
     }
 
     private void sendEmailHelper(String[] mailList, String htmlContent, String module,
-            String attachmentName, String startDateFormatted, String endDateFormatted, String repoLink) {
+            String attachmentName, String startDateFormatted, String endDateFormatted, String repoLink, Boolean resultFlag) {
 
         String subject = String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted);
         ResponseEntity<String> emailResult = null;
@@ -104,7 +101,7 @@ public class MailServiceImpl implements MailService {
         try {
 
             emailResult = MultipartUtil.sendMultipartRequest(disaNotifierEndPoint, mailList,
-                    subject, htmlContent, module, attachmentName, startDateFormatted, endDateFormatted, repoLink);
+                    subject, htmlContent, module, attachmentName, startDateFormatted, endDateFormatted, repoLink, resultFlag);
 
             if (emailResult != null && emailResult.getStatusCode().is2xxSuccessful()) {
                 log.info("Email sent successfully");
@@ -149,11 +146,8 @@ public class MailServiceImpl implements MailService {
 		try {
 			ExcelUtil.saveWorkbook(attachment, attachmentName); 
 			seafileService.uploadFile(ip.getRepoId(),attachmentName);
-            sendEmailHelper(mailList, htmlContent, "notification", 
-                    											attachmentName, 
-                    											startDateFormatted, 
-                    											endDateFormatted, 
-                    											ip.getRepoLink());
+            sendEmailHelper(mailList, htmlContent, "notification",
+            				attachmentName,startDateFormatted,endDateFormatted,ip.getRepoLink(),Boolean.TRUE);
             deleteTemporaryFile(attachmentName);
 		} catch (Exception e) {
             log.error("Error processing attachment and sending email", e);
