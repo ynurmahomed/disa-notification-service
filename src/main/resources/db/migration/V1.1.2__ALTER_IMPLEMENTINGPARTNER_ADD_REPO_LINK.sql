@@ -1,1 +1,0 @@
-ALTER TABLE `ImplementingPartner` ADD COLUMN `repoLink` VARCHAR(100) NOT NULL AFTER `mailList`;
