@@ -6,13 +6,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-import disa.notification.service.service.SeafileService;
+import disa.notification.service.service.SeafileService1;
 import disa.notification.service.service.impl.FileSystemMailService;
 import disa.notification.service.service.impl.MailServiceImpl;
 import disa.notification.service.service.interfaces.MailService;
@@ -44,7 +45,7 @@ public class MailSenderConfig {
 	@Bean
 	@ConditionalOnProperty(name = "app.mailservice", havingValue = "javaMail")
 	public MailService mailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource,
-			DateInterval reportDateInterval, SeafileService seafileService) {
+			DateInterval reportDateInterval, SeafileService1 seafileService) {
 		return new MailServiceImpl(templateEngine, messageSource, reportDateInterval, seafileService);
 	}
 
@@ -64,5 +65,10 @@ public class MailSenderConfig {
 	@ConditionalOnProperty(name = "app.reportDateInterval", havingValue = "currentWeek")
 	DateInterval currentWeekDateInterval() {
 		return DateTimeUtils.getCurrentWeekInterVal();
+	}
+	
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
 	}
 }

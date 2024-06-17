@@ -18,7 +18,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import disa.notification.service.entity.ImplementingPartner;
-import disa.notification.service.service.SeafileService;
+import disa.notification.service.service.SeafileService1;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
@@ -40,9 +40,9 @@ public class MailServiceImpl implements MailService {
     private DateInterval reportDateInterval;
     private final String startDateFormatted;
     private final String endDateFormatted;
-    private final SeafileService seafileService;
+    private final SeafileService1 seafileService;
     
-    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval, SeafileService seafileService) {
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval, SeafileService1 seafileService) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
         this.reportDateInterval = reportDateInterval;
