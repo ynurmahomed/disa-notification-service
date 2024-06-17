@@ -16,7 +16,7 @@ import disa.notification.service.service.interfaces.LabResults;
 
 public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,Integer> {
 
-    @Query(value = "SELECT RequestingProvinceName ,RequestingDistrictName as requestingDistrictName,RequestingFacilityCode healthFacilityLabCode, TypeOfResult AS typeOfResult,MAX(RequestingFacilityName) as facilityName, MAX(AnalysisDateTime) as processingDate,COUNT(*) as totalReceived, " +
+    @Query(value = "SELECT RequestingProvinceName ,RequestingDistrictName as requestingDistrictName,RequestingFacilityCode healthFacilityLabCode, TypeOfResult AS typeOfResult, RequestingFacilityName as facilityName, MAX(AnalysisDateTime) as processingDate,COUNT(*) as totalReceived, " +
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS ='PROCESSED' THEN 1 END),0) AS processed," +
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS ='PENDING' THEN 1 END),0)  as totalPending, "+
                 "COALESCE(SUM( CASE WHEN VIRAL_LOAD_STATUS = 'NOT_PROCESSED' AND NOT_PROCESSING_CAUSE='NID_NOT_FOUND' THEN 1 END),0) AS notProcessedNidNotFount, " +

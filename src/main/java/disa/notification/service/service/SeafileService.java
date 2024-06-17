@@ -1,12 +1,22 @@
 package disa.notification.service.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import disa.notification.service.utils.SeafileUtil;
 
@@ -21,59 +31,62 @@ public class SeafileService {
 
 	public final String HEADER = "--header 'accept: application/json' ";
 	
+	RestTemplate restTemplate = new RestTemplate();
+	
 	public String getAuthenticationToken() throws Exception {
-		String authTokenCommand = "curl --request POST --url https://share.csaude.org.mz/api2/auth-token/ "
-				+ ""+HEADER+"" 
-				+ "--header 'content-type: application/json' "
-				+ "--data '{\"username\": \""+userName+"\", \"password\": \""+password+"\"}'";
+		String url = "https://share.csaude.org.mz/api2/auth-token/";
 		
-		String authTokenResponse = executeCommand(authTokenCommand);
-		String jsonResponse = SeafileUtil.extractJson(authTokenResponse); 
-		String token = SeafileUtil.parseJson(jsonResponse).get("token").toString();
-		return token.replaceAll("\"", "");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("username", userName);
+        requestBody.put("password", password);
+        
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        
+        String jsonResponse = SeafileUtil.extractJson(response.getBody());
+        String token = SeafileUtil.parseJson(jsonResponse).get("token").toString();
+        
+        return token.replace("\"", "");
+		
 	}
 	
 	public String getAnUploadLink(String repoId) throws Exception {
-		String uploadLinkCommand = "curl --request GET "
-				+ "--url 'https://share.csaude.org.mz/api2/repos/"+repoId+"/upload-link/?p=%2F' "
-				+ ""+HEADER+""
-				+ "--header 'authorization: Token " + getAuthenticationToken() + "'";
-		String uploadLinkResponse = executeCommand(uploadLinkCommand);
-		return SeafileUtil.getUploadLink(uploadLinkResponse);
+		String url = UriComponentsBuilder.fromHttpUrl("https://share.csaude.org.mz/api2/repos/" + repoId + "/upload-link/")
+                .queryParam("p", "/")
+                .toUriString();
+		
+		HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json");
+        headers.set("authorization", "Token " + getAuthenticationToken());
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        
+        return SeafileUtil.getUploadLink(response.getBody());
 	}
 	
 	public String uploadFile(String repoId, String attachmentName) throws Exception {
-		String uploadCommand = "curl --request POST "
-			     + "--url '"+getAnUploadLink(repoId)+"?ret-json=1' "
-			     + ""+HEADER+""
-			     + "--header 'authorization: Token " + getAuthenticationToken() + "' "
-			     + "--header 'content-type: multipart/form-data' "
-			     + "--form parent_dir=/ "
-			     + "--form file=@" + Paths.get("temp").resolve(attachmentName).toString();
-		return executeCommand(uploadCommand);
-	}
-	
-	public String executeCommand(String command) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder()
-                .command("bash", "-c", command)
-                .redirectErrorStream(true)
-                .start();
-
-        StringBuilder output = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-
-        int exitCode = process.waitFor();
+		String uploadUrl = getAnUploadLink(repoId) + "?ret-json=1";
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("accept", "application/json");
+        headers.set("authorization", "Token " + getAuthenticationToken());
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         
-        if (exitCode != 0) {
-            throw new RuntimeException("Command exited with non-zero exit code: " + exitCode);
-        }
-
-        return output.toString();
-    }
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("parent_dir", "/");
+        body.add("file", new FileSystemResource(Paths.get("temp").resolve(attachmentName).toString()));
+        
+        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(uploadUrl, HttpMethod.POST, entity, String.class);
+        
+        return response.getBody();
+	}
 }
