@@ -66,6 +66,7 @@ public class MailServiceImpl implements MailService {
     	Context ctx = prepareEmailContext(viralLoaders);
     	String htmlContent = generateHtmlContent(ctx);
     	String attachmentName = generateAttachmentName();
+
         try {
         	ByteArrayResource attachment = generateAttachment(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
                     pendingHealthFacilitySummaries);

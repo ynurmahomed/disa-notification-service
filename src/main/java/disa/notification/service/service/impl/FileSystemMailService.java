@@ -48,6 +48,7 @@ public class FileSystemMailService implements MailService {
              String end = formatter.format(reportDateInterval.getEndDateTime());
             SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
             ByteArrayResource xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,pendingHealthFacilitySummaries);
+          
             Path path = Paths.get("viral_Result_from_" + start + "_To_" + end + ".xlsx");
             Files.write(path, xls.getByteArray());
             log.info("File writen to path {}", path.toAbsolutePath());

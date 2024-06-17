@@ -38,7 +38,7 @@ public interface ViralLoaderRepository extends CrudRepository<ViralLoaderEntity,
     List<LabResults> findViralLoadResultsPendingMoreThan2Days(@Param("ouCodes") Set<String> orgUnitCodes);
 
     @Query(value = "select VLPendente.RequestingProvinceName ,VLPendente.requestingDistrictName,VLPendente.healthFacilityLabCode,VLPendente.facilityName,VLPendente.totalPending " +
-            ",lastSync.lastSyncDate from (SELECT RequestingProvinceName ,RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,MAX(RequestingFacilityName) as facilityName,Count(RequestingDistrictName) as  totalPending " +
+            ",lastSync.lastSyncDate from (SELECT RequestingProvinceName ,RequestingDistrictName as requestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,RequestingFacilityName as facilityName,Count(RequestingDistrictName) as  totalPending " +
             "   from VlData where RequestingFacilityCode in (:ouCodes) AND VIRAL_LOAD_STATUS='PENDING' AND  DATEDIFF(CURRENT_TIMESTAMP, CREATED_AT)>2 AND ENTITY_STATUS = 'ACTIVE' group by RequestingProvinceName ,RequestingDistrictName,RequestingFacilityCode ) VLPendente " +
             "  left join (SELECT RequestingDistrictName,RequestingFacilityCode as healthFacilityLabCode,max(UPDATED_AT) as lastSyncDate from VlData where RequestingFacilityCode in (:ouCodes) AND ENTITY_STATUS = 'ACTIVE' " +
             "  group by RequestingDistrictName,RequestingFacilityCode ) lastSync on VLPendente.healthFacilityLabCode=lastSync.healthFacilityLabCode and VLPendente.requestingDistrictName=lastSync.RequestingDistrictName",nativeQuery = true)
