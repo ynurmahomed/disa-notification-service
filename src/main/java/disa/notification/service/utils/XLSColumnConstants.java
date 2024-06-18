@@ -26,7 +26,7 @@ public interface XLSColumnConstants {
         UPDATED_AT("Data de Sincronização"),
         VIRAL_RESULT_STATUS("Estado"),
         NOT_PROCESSING_CAUSE("Motivo de Não envio"),
-        OBS("Observacoes");
+        OBS("Observações");
 
         private final String header;
 
@@ -49,7 +49,7 @@ public interface XLSColumnConstants {
         TOTAL_PROCESSED("No. Processados "),
         TOTAL_PENDING("No. Pendentes"),
         NOT_PROCESSED_INVALID_RESULT("No. Resultado inválido"),
-        NOT_PROCESSED_NID_NOT_FOUND("No. NID nao encontrado"),
+        NOT_PROCESSED_NID_NOT_FOUND("No. NID não encontrado"),
         NOT_PROCESSED_DUPLICATED_NID("No. NID duplicado"),
         NOT_PROCESSED_DUPLICATED_REQUEST_ID("No. ID da requisição duplicado");
 

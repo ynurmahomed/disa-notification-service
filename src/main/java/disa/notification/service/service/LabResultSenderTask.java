@@ -42,6 +42,8 @@ public class LabResultSenderTask {
             log.info(" A Sincronizar Dados da Provincia de {}", implementingPartner.getOrgName());
             sendEmailForImplementingPartner(implementingPartner);
         }
+
+        System.exit(0);
     }
 
     private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
