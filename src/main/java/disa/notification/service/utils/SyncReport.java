@@ -106,7 +106,7 @@ public class SyncReport implements XLSColumnConstants {
         Sheet sheet = workbook.createSheet("Dicionário");
 
         CellStyle dictionaryHeaderStyle = dictionaryHeaderStyle(workbook);
-        Row headerRow = sheet.createRow(SECOND_ROW);
+        Row headerRow = sheet.createRow(FIRST_ROW);
         for (int col = 0; col < DICTIONARY_HEADER.length; col++) {
             Cell cell = headerRow.createCell(col);
             cell.setCellValue(DICTIONARY_HEADER[col]);
@@ -114,7 +114,7 @@ public class SyncReport implements XLSColumnConstants {
         }
 
         CellStyle borderThin = fullBorderThin(workbook);
-        int counter = 2;
+        int counter = headerRow.getRowNum() + 1;
         for (Map.Entry<String, String> d : dictionaries.entrySet()) {
             Row row = sheet.createRow(counter++);
             row.setHeightInPoints(sheet.getDefaultRowHeightInPoints() * 2);
@@ -137,11 +137,11 @@ public class SyncReport implements XLSColumnConstants {
                 .format(DATE_FORMAT);
         Sheet sheet4 = workbook.createSheet("Recebidos por Distrito");
 
-        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 5);
+        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 15);
 
         // Create headers
         Row headerRow = sheet4.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
         for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
             Cell cell = headerRow.createCell(r.ordinal());
             cell.setCellValue(r.header());
@@ -192,10 +192,10 @@ public class SyncReport implements XLSColumnConstants {
     private void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
             Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Pendentes por US");
-        createFirstRow(workbook, sheet4, RESULTS_PENDING_BY_US_TITLE, 4);
+        createFirstRow(workbook, sheet4, RESULTS_PENDING_BY_US_TITLE, 5);
         // Create headers
         Row headerRow = sheet4.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
         for (ResultsPendingByUs r : ResultsPendingByUs.values()) {
             Cell cell = headerRow.createCell(r.ordinal());
             cell.setCellValue(r.header());
@@ -217,10 +217,10 @@ public class SyncReport implements XLSColumnConstants {
     private void composePendingByNIDSheet(List<LabResults> unsyncronizedViralLoadResults,
             Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("Pendentes por NID");
-        createFirstRow(workbook, sheet3, RESULTS_PENDING_BY_NID_TITLE, 7);
+        createFirstRow(workbook, sheet3, RESULTS_PENDING_BY_NID_TITLE, 6);
         // Create headers
         Row headerRow = sheet3.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
         for (ResultsPendingByNid r : ResultsPendingByNid.values()) {
             Cell cell = headerRow.createCell(r.ordinal());
             cell.setCellValue(r.header());
@@ -245,10 +245,11 @@ public class SyncReport implements XLSColumnConstants {
         String startDateFormatted = reportDateInterval.getStartDateTime().format(DATE_FORMAT);
         String endDateFormatted = reportDateInterval.getEndDateTime().format(DATE_FORMAT);
         Sheet sheet2 = workbook.createSheet("Recebidos por NID");
-        createFirstRow(workbook, sheet2, String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted), 9);
+        String title = String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted);
+        createFirstRow(workbook, sheet2, title, ResultsReceivedByNid.values().length - 1);
         // Create headers
         Row headerRow = sheet2.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
         for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
             Cell cell = headerRow.createCell(r.ordinal());
             cell.setCellValue(r.header());
@@ -265,20 +266,48 @@ public class SyncReport implements XLSColumnConstants {
 
     private void composeReceivedByUSSheet(List<LabResultSummary> viralLoaderResultSummary,
             Workbook workbook) {
-        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
+
+        // Title
+        DateInterval lastWeekInterval = DateTimeUtils.getLastWeekInterVal();
+        String startDateFormatted = lastWeekInterval.getStartDateTime().toLocalDate()
                 .format(DATE_FORMAT);
         String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
         Sheet sheet = workbook.createSheet("Recebidos por US");
-        createFirstRow(workbook, sheet, String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted),
-                6);
-        createSummaryRowHeader(workbook, sheet);
+        String title = String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted);
+        createFirstRow(workbook, sheet, title, ResultsByHFSummary.values().length - 1);
+
+        // Not Processed group
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
+        Row notProcessedGroupRow = sheet.createRow(SECOND_ROW);
+        Cell notProcessedGroupCell = notProcessedGroupRow.createCell(ResultsByHFSummary.TOTAL_PENDING.ordinal());
+        notProcessedGroupCell.setCellValue("Não Processados");
+        CellStyle notProcessedGroupCellStyle = getNotProcessedGroupCellStyle(workbook);
+        notProcessedGroupCell.setCellStyle(notProcessedGroupCellStyle);
+        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, FIRST_COL, 6));
+        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, ResultsByHFSummary.TOTAL_PENDING.ordinal(),
+                ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal()));
+
+        // Headers
+        Row headersRow = sheet.createRow(THIRD_ROW);
+        for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
+            Cell headerCell = headersRow.createCell(byHfSummary.ordinal());
+            headerCell.setCellValue(byHfSummary.header());
+            headerCell.setCellStyle(headerCellStyle);
+        }
+        // Apply not processed group style
+        for (int j = ResultsByHFSummary.TOTAL_PENDING
+                .ordinal(); j <= ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal(); j++) {
+            sheet.getRow(THIRD_ROW).getCell(j).setCellStyle(notProcessedGroupCellStyle);
+        }
+
+        // Results
         AtomicInteger counter = new AtomicInteger(3);
-        viralLoaderResultSummary.stream()
-                .forEach(viralResult -> {
-                    Row row = sheet.createRow(counter.getAndIncrement());
-                    createViralResultSummaryRow(row, viralResult);
-                });
+        viralLoaderResultSummary.stream().forEach(viralResult -> {
+            Row row = sheet.createRow(counter.getAndIncrement());
+            createViralResultSummaryRow(row, viralResult);
+        });
+
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
         sheet.autoSizeColumn(2);
@@ -293,31 +322,21 @@ public class SyncReport implements XLSColumnConstants {
         sheet.autoSizeColumn(11);
     }
 
+    /**
+     * Creates the title row
+     * 
+     * @param workbook The workbook
+     * @param sheet    The worksheet
+     * @param title    Title
+     * @param lastCol  The last column used in the worksheet
+     */
     private void createFirstRow(Workbook workbook, Sheet sheet, String title, int lastCol) {
         Row headerRow = sheet.createRow(FIRST_ROW);
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
+        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
         Cell cell = headerRow.createCell(0);
         cell.setCellValue(title);
         sheet.addMergedRegion(new CellRangeAddress(FIRST_ROW, FIRST_ROW, FIRST_COL, lastCol));
         cell.setCellStyle(headerCellStyle);
-    }
-
-    private void createSummaryRowHeader(Workbook workbook, Sheet sheet) {
-        CellStyle headerCellStyle = setHeaderCellStyle(workbook);
-        Row headerRow2 = sheet.createRow(SECOND_ROW);
-        Cell cell2 = headerRow2.createCell(6);
-        cell2.setCellValue("Não Processados");
-        cell2.setCellStyle(headerCellStyle);
-
-        Row headerRow3 = sheet.createRow(THIRD_ROW);
-        for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
-            Cell cell = headerRow3.createCell(byHfSummary.ordinal());
-            cell.setCellValue(byHfSummary.header());
-            cell.setCellStyle(headerCellStyle);
-        }
-        // Merge not processed header
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, 6, 10));
-
     }
 
     private CellStyle getBoldStyle(Workbook workbook) {
@@ -341,7 +360,7 @@ public class SyncReport implements XLSColumnConstants {
         return style;
     }
 
-    private CellStyle setHeaderCellStyle(Workbook workbook) {
+    private CellStyle getHeaderCellStyle(Workbook workbook) {
         CellStyle headerStyle = workbook.createCellStyle();
         XSSFFont font = ((XSSFWorkbook) workbook).createFont();
         font.setBold(true);
@@ -363,6 +382,15 @@ public class SyncReport implements XLSColumnConstants {
         boldPercent.cloneStyleFrom(getBoldStyle(workbook));
         boldPercent.setDataFormat(df.getFormat("0%"));
         return boldPercent;
+    }
+
+    private CellStyle getNotProcessedGroupCellStyle(Workbook workbook) {
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.cloneStyleFrom(getHeaderCellStyle(workbook));
+        // cellStyle.setFillBackgroundColor(IndexedColors.BLACK.index);
+        // cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        // cellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        return cellStyle;
     }
 
     private void createViralResultSummaryRow(Row row, LabResultSummary viralLoaderResult) {
