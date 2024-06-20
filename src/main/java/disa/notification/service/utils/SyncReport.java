@@ -43,8 +43,6 @@ public class SyncReport implements XLSColumnConstants {
     
     private DateInterval reportDateInterval;
 
-    private DateInterval reportDateInterval;
-
     private Map<String, String> dictionaries;
   
     public SyncReport(MessageSource messageSource, DateInterval reportDateInterval) {
