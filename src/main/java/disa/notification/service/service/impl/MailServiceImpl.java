@@ -2,6 +2,8 @@ package disa.notification.service.service.impl;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -16,11 +18,13 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import disa.notification.service.entity.ImplementingPartner;
+import disa.notification.service.service.SeafileService;
 import disa.notification.service.service.interfaces.LabResultSummary;
 import disa.notification.service.service.interfaces.LabResults;
 import disa.notification.service.service.interfaces.MailService;
 import disa.notification.service.service.interfaces.PendingHealthFacilitySummary;
 import disa.notification.service.utils.DateInterval;
+import disa.notification.service.utils.ExcelUtil;
 import disa.notification.service.utils.MultipartUtil;
 import disa.notification.service.utils.SyncReport;
 import disa.notification.service.utils.TemplateEngineUtils;
@@ -34,12 +38,18 @@ public class MailServiceImpl implements MailService {
     private TemplateEngine templateEngine;
     private final MessageSource messageSource;
     private DateInterval reportDateInterval;
-
-    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource,
-            DateInterval reportDateInterval) {
+    private final String startDateFormatted;
+    private final String endDateFormatted;
+    private final SeafileService seafileService;
+    
+    public MailServiceImpl(TemplateEngine templateEngine, MessageSource messageSource, DateInterval reportDateInterval, SeafileService seafileService) {
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
         this.reportDateInterval = reportDateInterval;
+        this.seafileService = seafileService;
+        
+        this.startDateFormatted = this.reportDateInterval.getStartDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        this.endDateFormatted = this.reportDateInterval.getEndDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
 
     @Value("${spring.mail.username}")
@@ -48,73 +58,51 @@ public class MailServiceImpl implements MailService {
     @Value("${disa.notifier.rest.endpoint}")
     private String disaNotifierEndPoint;
 
-    @Override
     public void sendEmail(final ImplementingPartner ip,
-            final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
-            List<LabResults> unsyncronizedViralLoadResults,
-            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
+            								final List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
+            								List<LabResults> unsyncronizedViralLoadResults,
+            								List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {	
+    	
+    	Context ctx = prepareEmailContext(viralLoaders);
+    	String htmlContent = generateHtmlContent(ctx);
+    	String attachmentName = generateAttachmentName();
 
-        // Prepare the evaluation context
-        final Context ctx = new Context(new Locale("pt", "BR"));
-        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        ctx.setVariable("fromDate", startDateFormatted);
-        ctx.setVariable("toDate", endDateFormatted);
-        ctx.setVariable("viralLoaders", viralLoaders);
-
-        // Create the HTML body using Thymeleaf
-        templateEngine = TemplateEngineUtils.getTemplateEngine();
-        final String htmlContent = this.templateEngine.process("index.html", ctx);
-
-        String attachmentName = "Lab_Results_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
-        SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
-        String[] mailList = ip.getMailList().split(",");
-        ByteArrayResource attachment = null;
         try {
-            attachment = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
+        	ByteArrayResource attachment = generateAttachment(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,
                     pendingHealthFacilitySummaries);
-            sendEmailHelper(mailList, htmlContent, attachment, "notification", attachmentName, startDateFormatted,
-                    endDateFormatted);
+            
+            if (attachment != null) {
+            	processAttachmentAndSendEmail(ip, attachment, htmlContent, attachmentName);
+			}
+            
         } catch (IOException e) {
             log.error(e);
         }
     }
 
-    @Override
     public void sendNoResultsEmail(ImplementingPartner ip)
             throws MessagingException, UnsupportedEncodingException {
-
+        
         Context ctx = new Context(new Locale("pt", "BR"));
-        String startDateFormatted = reportDateInterval.getStartDateTime().toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         ctx.setVariable("fromDate", startDateFormatted);
         ctx.setVariable("toDate", endDateFormatted);
 
         String[] mailList = ip.getMailListItems();
         templateEngine = TemplateEngineUtils.getTemplateEngine();
         final String htmlContent = this.templateEngine.process("noResults.html", ctx);
-        sendEmailHelper(mailList, htmlContent, null, "notification", null, startDateFormatted, endDateFormatted);
+        sendEmailHelper(mailList, htmlContent, "notification", null, startDateFormatted, endDateFormatted, ip.getRepoLink(),Boolean.FALSE); 
     }
 
-    private void sendEmailHelper(String[] mailList, String htmlContent, ByteArrayResource attachment, String module,
-            String attachmentName, String startDateFormatted, String endDateFormatted) {
+    private void sendEmailHelper(String[] mailList, String htmlContent, String module,
+            String attachmentName, String startDateFormatted, String endDateFormatted, String repoLink, Boolean resultFlag) {
 
         String subject = String.format(EMAIL_SUBJECT, startDateFormatted, endDateFormatted);
-        byte[] byteArray = null;
-
         ResponseEntity<String> emailResult = null;
-        if (attachment != null) {
-            byteArray = attachment.getByteArray();
-        }
 
         try {
 
             emailResult = MultipartUtil.sendMultipartRequest(disaNotifierEndPoint, mailList,
-                    subject, htmlContent, byteArray, module, attachmentName, startDateFormatted, endDateFormatted);
+                    subject, htmlContent, module, attachmentName, startDateFormatted, endDateFormatted, repoLink, resultFlag);
 
             if (emailResult != null && emailResult.getStatusCode().is2xxSuccessful()) {
                 log.info("Email sent successfully");
@@ -127,4 +115,47 @@ public class MailServiceImpl implements MailService {
         }
 
     }
+    
+    private Context prepareEmailContext(List<LabResultSummary> viralLoaders) {
+        final Context ctx = new Context(new Locale("pt", "BR"));
+        ctx.setVariable("fromDate", startDateFormatted);
+        ctx.setVariable("toDate", endDateFormatted);
+        ctx.setVariable("viralLoaders", viralLoaders);
+        return ctx;
+	}
+    
+	private String generateHtmlContent(Context ctx) {
+		templateEngine = TemplateEngineUtils.getTemplateEngine();
+		return templateEngine.process("index.html", ctx);
+	}
+	
+	private String generateAttachmentName() {
+        return "Lab_Results_from_" + startDateFormatted + "_To_" + endDateFormatted + ".xlsx";
+	}
+	
+	private ByteArrayResource generateAttachment(List<LabResultSummary> viralLoaders, List<LabResults> viralLoadResults,
+			List<LabResults> unsyncronizedViralLoadResults,
+			List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {  
+			SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
+			return syncReport.getViralResultXLS(viralLoaders, viralLoadResults, 
+                                            				unsyncronizedViralLoadResults, 
+                                            				pendingHealthFacilitySummaries);
+	}
+	
+	private void processAttachmentAndSendEmail(ImplementingPartner ip, ByteArrayResource attachment, String htmlContent, String attachmentName) {
+		String[] mailList = ip.getMailList().split(",");
+		try {
+			ExcelUtil.saveWorkbook(attachment, attachmentName); 
+			seafileService.uploadFile(ip.getRepoId(),attachmentName);
+            sendEmailHelper(mailList, htmlContent, "notification",
+            				attachmentName,startDateFormatted,endDateFormatted,ip.getRepoLink(),Boolean.TRUE);
+            deleteTemporaryFile(attachmentName);
+		} catch (Exception e) {
+            log.error("Error processing attachment and sending email", e);
+        }
+	}
+
+	private void deleteTemporaryFile(String attachmentName) throws IOException {
+		Files.deleteIfExists(Paths.get("temp").resolve(Paths.get(attachmentName)));
+	}
 }

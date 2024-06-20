@@ -29,7 +29,7 @@ import lombok.extern.log4j.Log4j2;
 public class FileSystemMailService implements MailService {
 
     private MessageSource messageSource;
-
+    
     private DateInterval reportDateInterval;
 
     public FileSystemMailService(MessageSource messageSource, DateInterval reportDateInterval) {
@@ -43,13 +43,12 @@ public class FileSystemMailService implements MailService {
             throws MessagingException, UnsupportedEncodingException {
 
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            String start = formatter.format(reportDateInterval.getStartDateTime());
-            String end = formatter.format(reportDateInterval.getEndDateTime());
+        	 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+             String start = formatter.format(reportDateInterval.getStartDateTime());
+             String end = formatter.format(reportDateInterval.getEndDateTime());
             SyncReport syncReport = new SyncReport(messageSource, reportDateInterval);
-            ByteArrayResource xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults,
-                    unsyncronizedViralLoadResults,
-                    pendingHealthFacilitySummaries);
+            ByteArrayResource xls = syncReport.getViralResultXLS(viralLoaders, viralLoadResults, unsyncronizedViralLoadResults,pendingHealthFacilitySummaries);
+          
             Path path = Paths.get("viral_Result_from_" + start + "_To_" + end + ".xlsx");
             Files.write(path, xls.getByteArray());
             log.info("File writen to path {}", path.toAbsolutePath());

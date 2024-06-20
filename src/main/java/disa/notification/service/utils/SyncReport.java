@@ -40,11 +40,11 @@ public class SyncReport implements XLSColumnConstants {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private MessageSource messageSource;
-
+    
     private DateInterval reportDateInterval;
 
     private Map<String, String> dictionaries;
-
+  
     public SyncReport(MessageSource messageSource, DateInterval reportDateInterval) {
         this.messageSource = messageSource;
         this.reportDateInterval = reportDateInterval;
@@ -301,7 +301,6 @@ public class SyncReport implements XLSColumnConstants {
             sheet.getRow(THIRD_ROW).getCell(j).setCellStyle(notProcessedGroupCellStyle);
         }
 
-        // Results
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream().forEach(viralResult -> {
             Row row = sheet.createRow(counter.getAndIncrement());

@@ -19,16 +19,15 @@ public class LabLoaderServiceImpl implements LabLoaderService {
     private final ViralLoaderRepository viralLoaderRepository;
 
     @Override
-    public List<LabResultSummary> findLabSummaryResultsFromDateInterval(ImplementingPartner ip,
-            DateInterval dateInterval) {
+    public List<LabResultSummary> findLabSummaryResultsFromDateInterval(ImplementingPartner ip, DateInterval dateInterval) {
         return viralLoaderRepository.findViralLoadResultSummary(dateInterval.getStartDateTime(),
-                dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
+        		dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override
     public List<LabResults> findLabResultsFromDateInterval(ImplementingPartner ip, DateInterval dateInterval) {
         return viralLoaderRepository.findViralLoadResults(dateInterval.getStartDateTime(),
-                dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
+        		dateInterval.getEndDateTime(), ip.getOrgUnitCodes());
     }
 
     @Override

@@ -36,6 +36,9 @@ public class LabResultSenderTask {
         log.info("Report date interval {}", reportDateInterval);
         log.info("A Compor Dados para envio");
 
+        // Custom query method that returns all implementing entities where the enabled field is true,
+        // and it uses the @EntityGraph annotation to ensure that related entities are loaded along with
+        // the query results
         List<ImplementingPartner> implementingPartners = ipRepository.findByEnabledTrue();
 
         for (ImplementingPartner implementingPartner : implementingPartners) {
@@ -44,16 +47,12 @@ public class LabResultSenderTask {
         }
 
     }
-
+    
     private void sendEmailForImplementingPartner(ImplementingPartner implementingPartner) {
-        List<LabResultSummary> labResultSummary = labLoaderService
-                .findLabSummaryResultsFromDateInterval(implementingPartner, reportDateInterval);
-        List<LabResults> labResults = labLoaderService.findLabResultsFromDateInterval(implementingPartner,
-                reportDateInterval);
-        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService
-                .findLabResultsPendingMoreThan2Days(implementingPartner);
-        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService
-                .findPendingHealthFacilitySummary(implementingPartner);
+        List<LabResultSummary> labResultSummary = labLoaderService.findLabSummaryResultsFromDateInterval(implementingPartner, reportDateInterval);
+        List<LabResults> labResults = labLoaderService.findLabResultsFromDateInterval(implementingPartner, reportDateInterval);
+        List<LabResults> pendingResultsForMoreThan2Days = labLoaderService.findLabResultsPendingMoreThan2Days(implementingPartner);
+        List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries = labLoaderService.findPendingHealthFacilitySummary(implementingPartner);
 
         try {
             if (!labResultSummary.isEmpty() || !pendingResultsForMoreThan2Days.isEmpty()) {
