@@ -25,6 +25,8 @@ public interface LabResults {
 
      LocalDateTime getCreatedAt();
 
+     String getRequestingProvinceName();
+
      String getRequestingDistrictName();
 
      LocalDateTime getUpdatedAt();

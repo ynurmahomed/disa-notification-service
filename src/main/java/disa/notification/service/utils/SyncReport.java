@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -21,13 +23,13 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.core.io.ClassPathResource;
 
 import disa.notification.service.entity.ViralResultStatistics;
 import disa.notification.service.enums.ViralLoadStatus;
@@ -37,50 +39,32 @@ import disa.notification.service.service.interfaces.PendingHealthFacilitySummary
 
 public class SyncReport implements XLSColumnConstants {
 
+    private static final int RECEIVED_BY_DISTRICT_SHEET = 1;
+    private static final int RECEIVED_BY_US_SHEET = 2;
+    private static final int RECEIVED_BY_NID_SHEET = 3;
+    private static final int PENDING_BY_US_SHEET = 4;
+    private static final int PENDING_BY_NID_SHEET = 5;
+
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private MessageSource messageSource;
-    
+
     private DateInterval reportDateInterval;
 
-    private Map<String, String> dictionaries;
-  
     public SyncReport(MessageSource messageSource, DateInterval reportDateInterval) {
         this.messageSource = messageSource;
         this.reportDateInterval = reportDateInterval;
-
-        Map<String, String> d = new LinkedHashMap<>(12);
-        d.put("Total Recebidos", "Número total de resultados laboratoriais criados no servidor de integração");
-        d.put("No. Processados",
-                "Número de resultados laboratoriais criados no servidor de integração que foram processados (NID identificado e e-Lab criado no SESP)");
-        d.put("Não Processados: No. Resultado inválido",
-                "Número de resultados laboratoriais criados no servidor de integração que não foram processados (não tem e-Lab criado no SESP) porque o resultado não tem um valor válido.");
-        d.put("Não Processados: No. NID não encontrado",
-                "Número de resultados laboratoriais criados no servidor de integração que não foram processados (não tem e-Lab criado no SESP) porque o NID do paciente não foi encontrado no SESP.");
-        d.put("Não Processados: No. NID duplicado",
-                "Número de resultados laboratoriais criados no servidor de integração que não foram processados (não tem e-Lab criado no SESP) porque o NID do paciente está duplicado no SESP.");
-        d.put("Não Processados: No. ID da requisição duplicado",
-                "Número de resultados laboratoriais no servidor de integração que não foram processados (não tem e-Lab criado no SESP) porque há um processo com o mesmo código de requisição que já foi processado com sucesso anteriormente.");
-        d.put("No. Pendentes",
-                "Número de resultados laboratoriais criados no servidor de integração que ainda não foram sincronizados com SESP");
-        d.put("Data de Entrada", "Data em que o resultado laboratorial foi criado no servidor de integração");
-        d.put("Data de Sincronização",
-                "Data em que o entre o servidor de integração sincronizou os resultados laboratoriais com SESP ");
-        d.put("Estado",
-                "O estado actual do resultado laboratorial no servidor de integração, incluindo: Processado (e-Lab criado em SESP); Não Processado (problemas ao sincronizar com SESP, e-Lab não criado no SESP) ou Pendente (ainda não foi sincronizado com SESP).");
-        d.put("Motivo não envio",
-                "Se estado for Não Processado, o motivo pode ser NID não encontrado, NID duplicado, ID de requisição duplicado, Sinalizado para revisão, Sem Resultados.");
-        d.put("Data da última sincronização ",
-                "Data da última tentativa de sincronização entre o servidor de integração e SESP na US");
-        dictionaries = Collections.unmodifiableMap(d);
     }
 
     public ByteArrayResource getViralResultXLS(
             List<LabResultSummary> viralLoaderResultSummary, List<LabResults> viralLoadResults,
             List<LabResults> unsyncronizedViralLoadResults,
-            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) throws IOException {
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
-            composeDictionarySheet(workbook);
+            List<PendingHealthFacilitySummary> pendingHealthFacilitySummaries) {
+
+        try (InputStream in = new ClassPathResource("templates/SyncReport.xlsx").getInputStream();
+                Workbook workbook = WorkbookFactory.create(in);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
+
             composeReceivedByDistrictSheet(viralLoaderResultSummary, workbook);
             composeReceivedByUSSheet(viralLoaderResultSummary, workbook);
             composeReceivedByNIDSheet(viralLoadResults, workbook);
@@ -88,45 +72,10 @@ public class SyncReport implements XLSColumnConstants {
             composePendingByNIDSheet(unsyncronizedViralLoadResults, workbook);
             workbook.write(stream);
             return new ByteArrayResource(stream.toByteArray());
-        } catch (IOException ioe) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not generate the file");
+
+        } catch (IOException | InvalidFormatException e) {
+            throw new RuntimeException("Could not generate the file", e);
         }
-    }
-
-    private CellStyle fullBorderThin(Workbook wb) {
-        CellStyle style = wb.createCellStyle();
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        return style;
-    }
-
-    private void composeDictionarySheet(Workbook workbook) {
-        Sheet sheet = workbook.createSheet("Dicionário");
-
-        CellStyle dictionaryHeaderStyle = dictionaryHeaderStyle(workbook);
-        Row headerRow = sheet.createRow(FIRST_ROW);
-        for (int col = 0; col < DICTIONARY_HEADER.length; col++) {
-            Cell cell = headerRow.createCell(col);
-            cell.setCellValue(DICTIONARY_HEADER[col]);
-            cell.setCellStyle(dictionaryHeaderStyle);
-        }
-
-        CellStyle borderThin = fullBorderThin(workbook);
-        int counter = headerRow.getRowNum() + 1;
-        for (Map.Entry<String, String> d : dictionaries.entrySet()) {
-            Row row = sheet.createRow(counter++);
-            row.setHeightInPoints(sheet.getDefaultRowHeightInPoints() * 2);
-            Cell variable = row.createCell(0);
-            variable.setCellValue(d.getKey());
-            variable.setCellStyle(borderThin);
-            Cell description = row.createCell(1);
-            description.setCellValue(d.getValue());
-            description.setCellStyle(borderThin);
-        }
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
     }
 
     public void composeReceivedByDistrictSheet(List<LabResultSummary> viralLoaderResultSummaryList,
@@ -135,18 +84,10 @@ public class SyncReport implements XLSColumnConstants {
                 .format(DATE_FORMAT);
         String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
-        Sheet sheet4 = workbook.createSheet("Recebidos por Distrito");
+        Sheet sheet = workbook.getSheetAt(RECEIVED_BY_DISTRICT_SHEET);
 
-        createFirstRow(workbook, sheet4, String.format(STATS_TITLE, startDateFormatted, endDateFormatted), 15);
-
-        // Create headers
-        Row headerRow = sheet4.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
-        for (ResultsByDistrictSummary r : ResultsByDistrictSummary.values()) {
-            Cell cell = headerRow.createCell(r.ordinal());
-            cell.setCellValue(r.header());
-            cell.setCellStyle(headerCellStyle);
-        }
+        // createFirstRow(workbook, sheet, String.format(STATS_TITLE,
+        // startDateFormatted, endDateFormatted), 15);
 
         AtomicInteger counter4 = new AtomicInteger(2);
         Map<String, Map<String, Map<String, ViralResultStatistics>>> provinces = viralLoaderResultSummaryList
@@ -160,39 +101,21 @@ public class SyncReport implements XLSColumnConstants {
         provinces.forEach((province, districts) -> {
             districts.forEach((district, typesOfResult) -> {
                 typesOfResult.forEach((type, stats) -> {
-                    Row row = sheet4.createRow(counter4.getAndIncrement());
+                    Row row = sheet.createRow(counter4.getAndIncrement());
                     createStatResultRow(workbook, row, province, district, stats);
                     totals.accumulate(stats);
                 });
             });
         });
 
-        Row row = sheet4.createRow(counter4.getAndIncrement());
+        Row row = sheet.createRow(counter4.getAndIncrement());
         createStatLastResultRow(workbook, row, totals);
-
-        sheet4.autoSizeColumn(0);
-        sheet4.autoSizeColumn(1);
-        sheet4.autoSizeColumn(2);
-        sheet4.autoSizeColumn(3);
-        sheet4.autoSizeColumn(4);
-        sheet4.autoSizeColumn(5);
-        sheet4.autoSizeColumn(6);
-        sheet4.autoSizeColumn(7);
-        sheet4.autoSizeColumn(8);
-        sheet4.autoSizeColumn(9);
-        sheet4.autoSizeColumn(10);
-        sheet4.autoSizeColumn(11);
-        sheet4.autoSizeColumn(12);
-        sheet4.autoSizeColumn(13);
-        sheet4.autoSizeColumn(14);
-        sheet4.autoSizeColumn(15);
-        sheet4.autoSizeColumn(16);
     }
 
     private void composePendingByUSSheet(List<PendingHealthFacilitySummary> pendingViralResultSummaries,
             Workbook workbook) {
-        Sheet sheet4 = workbook.createSheet("Pendentes por US");
-        createFirstRow(workbook, sheet4, RESULTS_PENDING_BY_US_TITLE, 5);
+        Sheet sheet4 = workbook.getSheetAt(PENDING_BY_US_SHEET);
+        // createFirstRow(workbook, sheet4, RESULTS_PENDING_BY_US_TITLE, 5);
         // Create headers
         Row headerRow = sheet4.createRow(SECOND_ROW);
         CellStyle headerCellStyle = getHeaderCellStyle(workbook);
@@ -201,66 +124,53 @@ public class SyncReport implements XLSColumnConstants {
             cell.setCellValue(r.header());
             cell.setCellStyle(headerCellStyle);
         }
-        AtomicInteger counter4 = new AtomicInteger(2);
+        AtomicInteger counter = new AtomicInteger(2);
         pendingViralResultSummaries.forEach(pendingViralResultSummary -> {
-            Row row = sheet4.createRow(counter4.getAndIncrement());
+            Row row = sheet4.createRow(counter.getAndIncrement());
             createPendingViralResultSummaryRow(row, pendingViralResultSummary);
         });
-        sheet4.autoSizeColumn(0);
-        sheet4.autoSizeColumn(1);
-        sheet4.autoSizeColumn(2);
-        sheet4.autoSizeColumn(3);
-        sheet4.autoSizeColumn(4);
-        sheet4.autoSizeColumn(5);
     }
 
     private void composePendingByNIDSheet(List<LabResults> unsyncronizedViralLoadResults,
             Workbook workbook) {
-        Sheet sheet3 = workbook.createSheet("Pendentes por NID");
-        createFirstRow(workbook, sheet3, RESULTS_PENDING_BY_NID_TITLE, 6);
+        Sheet sheet3 = workbook.getSheetAt(PENDING_BY_NID_SHEET);
+        // createFirstRow(workbook, sheet3, RESULTS_PENDING_BY_NID_TITLE, 6);
         // Create headers
-        Row headerRow = sheet3.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
-        for (ResultsPendingByNid r : ResultsPendingByNid.values()) {
-            Cell cell = headerRow.createCell(r.ordinal());
-            cell.setCellValue(r.header());
-            cell.setCellStyle(headerCellStyle);
-        }
+        // Row headerRow = sheet3.createRow(SECOND_ROW);
+        // CellStyle headerCellStyle = getHeaderCellStyle(workbook);
+        // for (ResultsPendingByNid r : ResultsPendingByNid.values()) {
+        //     Cell cell = headerRow.createCell(r.ordinal());
+        //     cell.setCellValue(r.header());
+        //     cell.setCellStyle(headerCellStyle);
+        // }
         int rownum = 2;
         for (LabResults viralResult : unsyncronizedViralLoadResults) {
             Row row = sheet3.createRow(rownum++);
             createUnsyncronizedViralResultRow(row, viralResult);
         }
-        sheet3.autoSizeColumn(0);
-        sheet3.autoSizeColumn(1);
-        sheet3.autoSizeColumn(2);
-        sheet3.autoSizeColumn(3);
-        sheet3.autoSizeColumn(4);
-        sheet3.autoSizeColumn(5);
-        sheet3.autoSizeColumn(6);
-        sheet3.autoSizeColumn(7);
     }
 
     private void composeReceivedByNIDSheet(List<LabResults> viralLoadResults, Workbook workbook) {
         String startDateFormatted = reportDateInterval.getStartDateTime().format(DATE_FORMAT);
         String endDateFormatted = reportDateInterval.getEndDateTime().format(DATE_FORMAT);
-        Sheet sheet2 = workbook.createSheet("Recebidos por NID");
+        Sheet sheet = workbook.getSheetAt(RECEIVED_BY_NID_SHEET);
         String title = String.format(VIRAL_RESULT_TITLE, startDateFormatted, endDateFormatted);
-        createFirstRow(workbook, sheet2, title, ResultsReceivedByNid.values().length - 1);
+        // createFirstRow(workbook, sheet2, title, ResultsReceivedByNid.values().length
+        // - 1);
         // Create headers
-        Row headerRow = sheet2.createRow(SECOND_ROW);
-        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
-        for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
-            Cell cell = headerRow.createCell(r.ordinal());
-            cell.setCellValue(r.header());
-            cell.setCellStyle(headerCellStyle);
-        }
+        // Row headerRow = sheet2.createRow(SECOND_ROW);
+        // CellStyle headerCellStyle = getHeaderCellStyle(workbook);
+        // for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
+        //     Cell cell = headerRow.createCell(r.ordinal());
+        //     cell.setCellValue(r.header());
+        //     cell.setCellStyle(headerCellStyle);
+        // }
         int rowNum = 2;
         for (LabResults viralResult : viralLoadResults) {
-            createReceivedByNIDRow(sheet2.createRow(rowNum++), viralResult);
+            createReceivedByNIDRow(sheet.createRow(rowNum++), viralResult);
         }
         for (ResultsReceivedByNid r : ResultsReceivedByNid.values()) {
-            sheet2.autoSizeColumn(r.ordinal());
+            sheet.autoSizeColumn(r.ordinal());
         }
     }
 
@@ -273,33 +183,34 @@ public class SyncReport implements XLSColumnConstants {
                 .format(DATE_FORMAT);
         String endDateFormatted = reportDateInterval.getEndDateTime().toLocalDate()
                 .format(DATE_FORMAT);
-        Sheet sheet = workbook.createSheet("Recebidos por US");
+        Sheet sheet = workbook.getSheetAt(RECEIVED_BY_US_SHEET);
         String title = String.format(VIRAL_RESULT_SUMMARY_TITLE, startDateFormatted, endDateFormatted);
-        createFirstRow(workbook, sheet, title, ResultsByHFSummary.values().length - 1);
+        // createFirstRow(workbook, sheet, title, ResultsByHFSummary.values().length -
+        // 1);
 
         // Not Processed group
-        CellStyle headerCellStyle = getHeaderCellStyle(workbook);
-        Row notProcessedGroupRow = sheet.createRow(SECOND_ROW);
-        Cell notProcessedGroupCell = notProcessedGroupRow.createCell(ResultsByHFSummary.TOTAL_PENDING.ordinal());
-        notProcessedGroupCell.setCellValue("Não Processados");
-        CellStyle notProcessedGroupCellStyle = getNotProcessedGroupCellStyle(workbook);
-        notProcessedGroupCell.setCellStyle(notProcessedGroupCellStyle);
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, FIRST_COL, 6));
-        sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, ResultsByHFSummary.TOTAL_PENDING.ordinal(),
-                ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal()));
+        // CellStyle headerCellStyle = getHeaderCellStyle(workbook);
+        // Row notProcessedGroupRow = sheet.createRow(SECOND_ROW);
+        // Cell notProcessedGroupCell = notProcessedGroupRow.createCell(ResultsByHFSummary.TOTAL_PENDING.ordinal());
+        // notProcessedGroupCell.setCellValue("Não Processados");
+        // CellStyle notProcessedGroupCellStyle = getNotProcessedGroupCellStyle(workbook);
+        // notProcessedGroupCell.setCellStyle(notProcessedGroupCellStyle);
+        // sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, FIRST_COL, 6));
+        // sheet.addMergedRegion(new CellRangeAddress(SECOND_ROW, SECOND_ROW, ResultsByHFSummary.TOTAL_PENDING.ordinal(),
+        //         ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal()));
 
         // Headers
-        Row headersRow = sheet.createRow(THIRD_ROW);
-        for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
-            Cell headerCell = headersRow.createCell(byHfSummary.ordinal());
-            headerCell.setCellValue(byHfSummary.header());
-            headerCell.setCellStyle(headerCellStyle);
-        }
+        // Row headersRow = sheet.createRow(THIRD_ROW);
+        // for (ResultsByHFSummary byHfSummary : ResultsByHFSummary.values()) {
+        //     Cell headerCell = headersRow.createCell(byHfSummary.ordinal());
+        //     headerCell.setCellValue(byHfSummary.header());
+        //     headerCell.setCellStyle(headerCellStyle);
+        // }
         // Apply not processed group style
-        for (int j = ResultsByHFSummary.TOTAL_PENDING
-                .ordinal(); j <= ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal(); j++) {
-            sheet.getRow(THIRD_ROW).getCell(j).setCellStyle(notProcessedGroupCellStyle);
-        }
+        // for (int j = ResultsByHFSummary.TOTAL_PENDING
+        //         .ordinal(); j <= ResultsByHFSummary.NOT_PROCESSED_DUPLICATED_REQUEST_ID.ordinal(); j++) {
+        //     sheet.getRow(THIRD_ROW).getCell(j).setCellStyle(notProcessedGroupCellStyle);
+        // }
 
         AtomicInteger counter = new AtomicInteger(3);
         viralLoaderResultSummary.stream().forEach(viralResult -> {
@@ -307,18 +218,6 @@ public class SyncReport implements XLSColumnConstants {
             createViralResultSummaryRow(row, viralResult);
         });
 
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-        sheet.autoSizeColumn(2);
-        sheet.autoSizeColumn(3);
-        sheet.autoSizeColumn(4);
-        sheet.autoSizeColumn(5);
-        sheet.autoSizeColumn(6);
-        sheet.autoSizeColumn(7);
-        sheet.autoSizeColumn(8);
-        sheet.autoSizeColumn(9);
-        sheet.autoSizeColumn(10);
-        sheet.autoSizeColumn(11);
     }
 
     /**
@@ -541,6 +440,9 @@ public class SyncReport implements XLSColumnConstants {
                     break;
                 case NID:
                     cell.setCellValue(viralLoaderResult.getNID());
+                    break;
+                case PROVINCE:
+                    cell.setCellValue(viralLoaderResult.getRequestingProvinceName());
                     break;
                 case DISTRICT:
                     cell.setCellValue(viralLoaderResult.getRequestingDistrictName());

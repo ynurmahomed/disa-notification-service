@@ -115,6 +115,7 @@ public interface XLSColumnConstants {
     enum ResultsPendingByNid {
         REQUEST_ID("ID da Requisição"),
         NID("NID"),
+        PROVINCE("Província"),
         DISTRICT("Distrito"),
         HEALTH_FACILITY_CODE("Codigo da US"),
         HEALTH_FACILITY_NAME("Nome da US"),
